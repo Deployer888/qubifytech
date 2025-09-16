@@ -1,0 +1,846 @@
+@extends('backend.layouts.app')
+
+@section('content')
+@php
+    // Initialize variables to prevent undefined variable errors
+    $heroContent = $heroContent ?? null;
+    $whoWeAreContent = $whoWeAreContent ?? null;
+    $whatWeDoContent = $whatWeDoContent ?? null;
+    $missionVisionContent = $missionVisionContent ?? null;
+    $whyQubifyContent = $whyQubifyContent ?? null;
+    $coCreationContent = $coCreationContent ?? null;
+    $footerCtaContent = $footerCtaContent ?? null;
+@endphp
+
+<!-- Common Dynamic Page Admin Styles -->
+<link rel="stylesheet" href="{{ asset('css/dynamic-page-admin.css') }}">
+
+<div class="dynamic-page-container">
+    <!-- Breadcrumb -->
+    <div class="container-fluid">
+        <div class="dynamic-breadcrumb">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('backend.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="#">Dynamic Pages</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">About Page</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="sections-sidebar">
+                    <div class="p-3 border-bottom">
+                        <h5 class="mb-0" style="color: #1e293b; font-weight: 600;">About Page Sections</h5>
+                    </div>
+                    <div class="sections-nav">
+                        <button class="section-nav-link active" data-section="hero">
+                            <i class="fas fa-star"></i>
+                            Hero Section
+                        </button>
+                        <button class="section-nav-link" data-section="who-we-are">
+                            <i class="fas fa-users"></i>
+                            Who We Are
+                        </button>
+                        <button class="section-nav-link" data-section="what-we-do">
+                            <i class="fas fa-cogs"></i>
+                            What We Do
+                        </button>
+                        <button class="section-nav-link" data-section="mission-vision">
+                            <i class="fas fa-eye"></i>
+                            Mission & Vision
+                        </button>
+                        <button class="section-nav-link" data-section="why-qubify">
+                            <i class="fas fa-lightbulb"></i>
+                            Why Qubify
+                        </button>
+                        <button class="section-nav-link" data-section="co-creation">
+                            <i class="fas fa-handshake"></i>
+                            Co-Creation Process
+                        </button>
+                        <button class="section-nav-link" data-section="footer-cta">
+                            <i class="fas fa-bullhorn"></i>
+                            Footer CTA
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="col-lg-9">
+                <div class="content-area">
+                    
+                    <!-- Hero Section -->
+                    <div class="section-content active" id="hero-section">
+                        <div class="section-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title">
+                                    <i class="fas fa-star"></i>
+                                    Hero Section
+                                </h2>
+                            </div>
+                        </div>
+                        
+                        <form id="heroForm">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">Hero Title</label>
+                                        <textarea class="form-control" name="hero_title" rows="3" placeholder="Made in India, Built for the World">{{ isset($heroContent) && $heroContent ? ($heroContent->content_json['title'] ?? '') : 'Made in India,
+                                         Built for the World' }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">Hero Subtitle</label>
+                                        <textarea class="form-control" name="hero_subtitle" rows="4" placeholder="We're not just another software development company...">{{ isset($heroContent) && $heroContent ? ($heroContent->content_json['subtitle'] ?? '') : "We're not just another software development company—we're your strategic partner in digital transformation, crafting scalable, AI-powered solutions tailored to your business goals." }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Button Text</label>
+                                        <input type="text" class="form-control" name="hero_button_text" placeholder="Discover Our Story" value="{{ isset($heroContent) && $heroContent ? ($heroContent->content_json['button']['text'] ?? '') : 'Discover Our Story' }}">
+                                    </div>
+                                </div>
+                               {{-- <!-- <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Button Icon (FontAwesome class)</label>
+                                        <input type="text" class="form-control" name="hero_button_icon" placeholder="fas fa-rocket" value="{{ isset($heroContent) && $heroContent ? ($heroContent->content_json['button']['icon'] ?? '') : 'fas fa-rocket' }}">
+                                    </div>
+                                </div> --> --}}
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Save Hero Section
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Who We Are Section -->
+                    <div class="section-content" id="who-we-are-section">
+                        <div class="section-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title">
+                                    <i class="fas fa-users"></i>
+                                    Who We Are Section
+                                </h2>
+                            </div>
+                        </div>
+                        
+                        <form id="whoWeAreForm">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">Section Title</label>
+                                        <input type="text" class="form-control" name="who_title" placeholder="Who We Are" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['title'] ?? '') : 'Who We Are' }}">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">First Description Paragraph</label>
+                                        <textarea class="form-control" name="who_description_1" rows="3" placeholder="Qubify Technologies Pvt. Ltd. is an India-based technology company...">{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['descriptions'][0] ?? '') : 'Qubify Technologies Pvt. Ltd. is an India-based technology company focused on delivering custom software solutions, SaaS platforms, and AI-driven digital products that solve real business challenges.' }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">Second Description Paragraph</label>
+                                        <textarea class="form-control" name="who_description_2" rows="3" placeholder="Our commitment to innovation, speed, and security...">{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['descriptions'][1] ?? '') : 'Our commitment to innovation, speed, and security has helped us serve clients across industries—from HR and healthcare to logistics and retail. We build what your business needs—not just what\'s trending.' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-title">
+                                    <i class="fas fa-lightbulb"></i>
+                                    Feature Highlight
+                                </div>
+                                <div class="row">
+                                  {{--  <!-- <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Feature Icon</label>
+                                            <input type="text" class="form-control" name="who_feature_icon" placeholder="fas fa-lightbulb" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['feature']['icon'] ?? '') : 'fas fa-lightbulb' }}">
+                                        </div>
+                                    </div> --> --}}
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Feature Title</label>
+                                            <input type="text" class="form-control" name="who_feature_title" placeholder="Innovation First" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['feature']['title'] ?? '') : 'Innovation First' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <label class="form-label">Feature Description</label>
+                                            <input type="text" class="form-control" name="who_feature_description" placeholder="Cutting-edge solutions for modern challenges" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['feature']['description'] ?? '') : 'Cutting-edge solutions for modern challenges' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-title">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Statistics
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Statistic 1 - Number</label>
+                                            <input type="text" class="form-control" name="stat1_number" placeholder="50+" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['statistics'][0]['number'] ?? '') : '50+' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Statistic 1 - Label</label>
+                                            <input type="text" class="form-control" name="stat1_label" placeholder="Projects Delivered" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['statistics'][0]['label'] ?? '') : 'Projects Delivered' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Statistic 2 - Number</label>
+                                            <input type="text" class="form-control" name="stat2_number" placeholder="99%" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['statistics'][1]['number'] ?? '') : '99%' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Statistic 2 - Label</label>
+                                            <input type="text" class="form-control" name="stat2_label" placeholder="Client Satisfaction" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['statistics'][1]['label'] ?? '') : 'Client Satisfaction' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Statistic 3 - Number</label>
+                                            <input type="text" class="form-control" name="stat3_number" placeholder="24/7" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['statistics'][2]['number'] ?? '') : '24/7' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Statistic 3 - Label</label>
+                                            <input type="text" class="form-control" name="stat3_label" placeholder="Support Available" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['statistics'][2]['label'] ?? '') : 'Support Available' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Statistic 4 - Number</label>
+                                            <input type="text" class="form-control" name="stat4_number" placeholder="5+" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['statistics'][3]['number'] ?? '') : '5+' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Statistic 4 - Label</label>
+                                            <input type="text" class="form-control" name="stat4_label" placeholder="Years Experience" value="{{ isset($whoWeAreContent) && $whoWeAreContent ? ($whoWeAreContent->content_json['statistics'][3]['label'] ?? '') : 'Years Experience' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Save Who We Are Section
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- What We Do Section -->
+                    <div class="section-content" id="what-we-do-section">
+                        <div class="section-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title">
+                                    <i class="fas fa-cogs"></i>
+                                    What We Do Section
+                                </h2>
+                            </div>
+                        </div>
+                        
+                        <form id="whatWeDoForm">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">Section Title</label>
+                                        <input type="text" class="form-control" name="what_title" placeholder="What We Do" value="{{ isset($whatWeDoContent) && $whatWeDoContent ? ($whatWeDoContent->content_json['title'] ?? '') : 'What We Do' }}">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">Section Description</label>
+                                        <textarea class="form-control" name="what_description" rows="3" placeholder="From high-performance enterprise software to user-centric mobile applications...">{{ isset($whatWeDoContent) && $whatWeDoContent ? ($whatWeDoContent->content_json['description'] ?? '') : 'From high-performance enterprise software to user-centric mobile applications, we offer end-to-end development that empowers growth, efficiency, and transformation.' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @php
+                                $defaultServices = [
+                                    ['icon' => 'fas fa-mobile-alt', 'title' => 'Custom Web & Mobile Apps', 'description' => 'Tailored applications that deliver exceptional user experiences and drive business growth.'],
+                                    ['icon' => 'fas fa-cloud', 'title' => 'SaaS Product Development', 'description' => 'Scalable software-as-a-service solutions designed for rapid market deployment.'],
+                                    ['icon' => 'fas fa-chart-line', 'title' => 'ERP & CRM Solutions', 'description' => 'Comprehensive business management systems that streamline operations.'],
+                                    ['icon' => 'fas fa-users', 'title' => 'HRMS, HIS & VMS Platforms', 'description' => 'Advanced management platforms for human resources and healthcare systems.'],
+                                    ['icon' => 'fas fa-robot', 'title' => 'AI & Automation Integration', 'description' => 'Intelligent automation solutions that enhance efficiency and decision-making.'],
+                                    ['icon' => 'fas fa-shopping-cart', 'title' => 'E-commerce Platforms', 'description' => 'Feature-rich online stores designed to maximize conversions and customer satisfaction.'],
+                                    ['icon' => 'fas fa-code', 'title' => 'Cloud & API-based Architecture', 'description' => 'Scalable cloud solutions and robust API architectures for modern applications.'],
+                                    ['icon' => 'fas fa-shield-alt', 'title' => 'Secure, Scalable Enterprise Software', 'description' => 'Enterprise-grade solutions with built-in security and scalability features.']
+                                ];
+                            @endphp
+
+                            @for($i = 1; $i <= 8; $i++)
+                                <div class="card">
+                                    <div class="card-title">
+                                        <i class="fas fa-cog"></i>
+                                        Service {{ $i }}
+                                    </div>
+                                    <div class="row">
+                                        {{-- <!-- <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="form-label">Service Icon</label>
+                                                <input type="text" class="form-control" name="service{{ $i }}_icon" placeholder="{{ $defaultServices[$i-1]['icon'] }}" value="{{ isset($whatWeDoContent) && $whatWeDoContent ? ($whatWeDoContent->content_json['services'][$i-1]['icon'] ?? '') : $defaultServices[$i-1]['icon'] }}">
+                                            </div>
+                                        </div> --> --}}
+                                        <div class="col-md-8">
+                                            <div class="form-group">
+                                                <label class="form-label">Service Title</label>
+                                                <input type="text" class="form-control" name="service{{ $i }}_title" placeholder="{{ $defaultServices[$i-1]['title'] }}" value="{{ isset($whatWeDoContent) && $whatWeDoContent ? ($whatWeDoContent->content_json['services'][$i-1]['title'] ?? '') : $defaultServices[$i-1]['title'] }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label class="form-label">Service Description</label>
+                                                <textarea class="form-control" name="service{{ $i }}_description" rows="2" placeholder="{{ $defaultServices[$i-1]['description'] }}">{{ isset($whatWeDoContent) && $whatWeDoContent ? ($whatWeDoContent->content_json['services'][$i-1]['description'] ?? '') : $defaultServices[$i-1]['description'] }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endfor
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Save What We Do Section
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Mission & Vision Section -->
+                    <div class="section-content" id="mission-vision-section">
+                        <div class="section-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title">
+                                    <i class="fas fa-eye"></i>
+                                    Mission & Vision Section
+                                </h2>
+                            </div>
+                        </div>
+                        
+                        <form id="missionVisionForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-title">
+                                            <i class="fas fa-bullseye"></i>
+                                            Mission
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Mission Title</label>
+                                            <input type="text" class="form-control" name="mission_title" placeholder="Our Mission" value="{{ isset($missionVisionContent) && $missionVisionContent ? ($missionVisionContent->content_json['mission']['title'] ?? '') : 'Our Mission' }}">
+                                        </div>
+                                        {{-- <!-- <div class="form-group">
+                                            <label class="form-label">Mission Icon</label>
+                                            <input type="text" class="form-control" name="mission_icon" placeholder="M" value="{{ isset($missionVisionContent) && $missionVisionContent ? ($missionVisionContent->content_json['mission']['icon'] ?? '') : 'M' }}">
+                                        </div> --> --}}
+                                        <div class="form-group">
+                                            <label class="form-label">Mission Description</label>
+                                            <textarea class="form-control" name="mission_description" rows="4" placeholder="To empower businesses with intelligent, secure, and customized technology solutions...">{{ isset($missionVisionContent) && $missionVisionContent ? ($missionVisionContent->content_json['mission']['description'] ?? '') : 'To empower businesses with intelligent, secure, and customized technology solutions that enhance performance, streamline operations, and drive sustainable growth.' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-title">
+                                            <i class="fas fa-eye"></i>
+                                            Vision
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Vision Title</label>
+                                            <input type="text" class="form-control" name="vision_title" placeholder="Our Vision" value="{{ isset($missionVisionContent) && $missionVisionContent ? ($missionVisionContent->content_json['vision']['title'] ?? '') : 'Our Vision' }}">
+                                        </div>
+                                        {{-- <!-- <div class="form-group">
+                                            <label class="form-label">Vision Icon</label>
+                                            <input type="text" class="form-control" name="vision_icon" placeholder="fas fa-eye" value="{{ isset($missionVisionContent) && $missionVisionContent ? ($missionVisionContent->content_json['vision']['icon'] ?? '') : 'fas fa-eye' }}">
+                                        </div> --> --}}
+                                        <div class="form-group">
+                                            <label class="form-label">Vision Description</label>
+                                            <textarea class="form-control" name="vision_description" rows="4" placeholder="To be a globally recognized leader in digital innovation...">{{ isset($missionVisionContent) && $missionVisionContent ? ($missionVisionContent->content_json['vision']['description'] ?? '') : 'To be a globally recognized leader in digital innovation—helping businesses of all sizes achieve efficiency, agility, and competitive edge through custom-built, AI-powered technology.' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Save Mission & Vision Section
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Why Qubify Section -->
+                    <div class="section-content" id="why-qubify-section">
+                        <div class="section-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title">
+                                    <i class="fas fa-lightbulb"></i>
+                                    Why Qubify Section
+                                </h2>
+                            </div>
+                        </div>
+                        
+                        <form id="whyQubifyForm">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">Section Title</label>
+                                        <input type="text" class="form-control" name="why_title" placeholder="Why Qubify?" value="{{ isset($whyQubifyContent) && $whyQubifyContent ? ($whyQubifyContent->content_json['title'] ?? '') : 'Why Qubify?' }}">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">Section Description</label>
+                                        <textarea class="form-control" name="why_description" rows="2" placeholder="Five key pillars that set us apart...">{{ isset($whyQubifyContent) && $whyQubifyContent ? ($whyQubifyContent->content_json['description'] ?? '') : 'Five key pillars that set us apart in the competitive landscape of technology solutions.' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @php
+                                $defaultPillars = [
+                                    ['icon' => 'fas fa-cogs', 'title' => 'Custom-First Approach', 'description' => 'Every solution we deliver is purpose-built, tailored to your business needs—not a one-size-fits-all template. We understand that each business is unique and deserves a unique solution.'],
+                                    ['icon' => 'fas fa-expand-arrows-alt', 'title' => 'Scalability at Core', 'description' => 'We build with the future in mind. Your software should grow with your business, not limit it. Our architectures are designed to handle growth seamlessly.'],
+                                    ['icon' => 'fas fa-brain', 'title' => 'AI & Automation Experts', 'description' => 'We leverage intelligent automation, machine learning, and analytics to build smarter systems that learn, adapt, and optimize performance over time.'],
+                                    ['icon' => 'fas fa-shield-alt', 'title' => 'Reliable & Secure', 'description' => 'Our enterprise-grade security frameworks and robust development practices ensure stability and peace of mind. Your data and systems are protected with bank-level security.'],
+                                    ['icon' => 'fas fa-dollar-sign', 'title' => 'Cost-Effective, High Value', 'description' => 'We deliver innovation without the heavy price tag—quality and performance, without compromise. Premium solutions at competitive prices.']
+                                ];
+                            @endphp
+
+                            @for($i = 1; $i <= 5; $i++)
+                                <div class="card">
+                                    <div class="card-title">
+                                        <i class="fas fa-star"></i>
+                                        Pillar {{ $i }}
+                                    </div>
+                                    <div class="row">
+                                       {{-- <!-- <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="form-label">Pillar Icon</label>
+                                                <input type="text" class="form-control" name="pillar{{ $i }}_icon" placeholder="{{ $defaultPillars[$i-1]['icon'] }}" value="{{ isset($whyQubifyContent) && $whyQubifyContent ? ($whyQubifyContent->content_json['pillars'][$i-1]['icon'] ?? '') : $defaultPillars[$i-1]['icon'] }}">
+                                            </div>
+                                        </div> --> --}}
+                                        <div class="col-md-8">
+                                            <div class="form-group">
+                                                <label class="form-label">Pillar Title</label>
+                                                <input type="text" class="form-control" name="pillar{{ $i }}_title" placeholder="{{ $defaultPillars[$i-1]['title'] }}" value="{{ isset($whyQubifyContent) && $whyQubifyContent ? ($whyQubifyContent->content_json['pillars'][$i-1]['title'] ?? '') : $defaultPillars[$i-1]['title'] }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label class="form-label">Pillar Description</label>
+                                                <textarea class="form-control" name="pillar{{ $i }}_description" rows="3" placeholder="{{ $defaultPillars[$i-1]['description'] }}">{{ isset($whyQubifyContent) && $whyQubifyContent ? ($whyQubifyContent->content_json['pillars'][$i-1]['description'] ?? '') : $defaultPillars[$i-1]['description'] }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endfor
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Save Why Qubify Section
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Co-Creation Process Section -->
+                    <div class="section-content" id="co-creation-section">
+                        <div class="section-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title">
+                                    <i class="fas fa-handshake"></i>
+                                    Co-Creation Process Section
+                                </h2>
+                            </div>
+                        </div>
+                        
+                        <form id="coCreationForm">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">Section Title</label>
+                                        <textarea class="form-control editor" name="cocreation_title" rows="2" placeholder="We Don't Just Code. We Co-Create.">{{ isset($coCreationContent) && $coCreationContent ? ($coCreationContent->content_json['title'] ?? '') : "We Don't Just Code.\nWe Co-Create." }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">Section Description</label>
+                                        <textarea class="form-control" name="cocreation_description" rows="3" placeholder="Our process is collaborative from day one...">{{ isset($coCreationContent) && $coCreationContent ? ($coCreationContent->content_json['description'] ?? '') : 'Our process is collaborative from day one. We partner with clients to understand their workflows, identify opportunities for improvement, and build long-term tech solutions that actually work in the real world.' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @php
+                                $defaultSteps = [
+                                    ['icon' => 'fas fa-handshake', 'title' => 'Collaborate', 'description' => 'Deep understanding of your business needs and goals'],
+                                    ['icon' => 'fas fa-lightbulb', 'title' => 'Innovate', 'description' => 'Creative solutions tailored to your unique challenges'],
+                                    ['icon' => 'fas fa-rocket', 'title' => 'Execute', 'description' => 'Deliver exceptional results that drive real business impact']
+                                ];
+                            @endphp
+
+                            @for($i = 1; $i <= 3; $i++)
+                                <div class="card">
+                                    <div class="card-title">
+                                        <i class="fas fa-step-forward"></i>
+                                        Step {{ $i }}
+                                    </div>
+                                    <div class="row">
+                                        {{-- <!-- <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="form-label">Step Icon</label>
+                                                <input type="text" class="form-control" name="step{{ $i }}_icon" placeholder="{{ $defaultSteps[$i-1]['icon'] }}" value="{{ isset($coCreationContent) && $coCreationContent ? ($coCreationContent->content_json['steps'][$i-1]['icon'] ?? '') : $defaultSteps[$i-1]['icon'] }}">
+                                            </div>
+                                        </div> --> --}}
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="form-label">Step Title</label>
+                                                <input type="text" class="form-control" name="step{{ $i }}_title" placeholder="{{ $defaultSteps[$i-1]['title'] }}" value="{{ isset($coCreationContent) && $coCreationContent ? ($coCreationContent->content_json['steps'][$i-1]['title'] ?? '') : $defaultSteps[$i-1]['title'] }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="form-label">Step Description</label>
+                                                <input type="text" class="form-control" name="step{{ $i }}_description" placeholder="{{ $defaultSteps[$i-1]['description'] }}" value="{{ isset($coCreationContent) && $coCreationContent ? ($coCreationContent->content_json['steps'][$i-1]['description'] ?? '') : $defaultSteps[$i-1]['description'] }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endfor
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Save Co-Creation Process Section
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Footer CTA Section -->
+                    <div class="section-content" id="footer-cta-section">
+                        <div class="section-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title">
+                                    <i class="fas fa-bullhorn"></i>
+                                    Footer CTA Section
+                                </h2>
+                            </div>
+                        </div>
+                        
+                        <form id="footerCtaForm">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">CTA Title</label>
+                                        <textarea class="form-control" name="cta_title" rows="2" placeholder="Ready to Transform? Let's Talk.">{{ isset($footerCtaContent) && $footerCtaContent ? ($footerCtaContent->content_json['title'] ?? '') : "Ready to Transform?\nLet's Talk." }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label">CTA Description</label>
+                                        <textarea class="form-control" name="cta_description" rows="3" placeholder="Join the businesses that trust Qubify...">{{ isset($footerCtaContent) && $footerCtaContent ? ($footerCtaContent->content_json['description'] ?? '') : 'Join the businesses that trust Qubify to deliver intelligent, scalable, and secure technology solutions. Your transformation journey starts with a conversation.' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-title">
+                                            <i class="fas fa-mouse-pointer"></i>
+                                            Primary Button
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Button Text</label>
+                                            <input type="text" class="form-control" name="cta_button1_text" placeholder="Start Your Project" value="{{ isset($footerCtaContent) && $footerCtaContent ? ($footerCtaContent->content_json['buttons'][0]['text'] ?? '') : 'Start Your Project' }}">
+                                        </div>
+                                        {{-- <!-- <div class="form-group">
+                                            <label class="form-label">Button Icon</label>
+                                            <input type="text" class="form-control" name="cta_button1_icon" placeholder="fas fa-comments" value="{{ isset($footerCtaContent) && $footerCtaContent ? ($footerCtaContent->content_json['buttons'][0]['icon'] ?? '') : 'fas fa-comments' }}">
+                                        </div> --> --}}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-title">
+                                            <i class="fas fa-external-link-alt"></i>
+                                            Secondary Button
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Button Text</label>
+                                            <input type="text" class="form-control" name="cta_button2_text" placeholder="Schedule Consultation" value="{{ isset($footerCtaContent) && $footerCtaContent ? ($footerCtaContent->content_json['buttons'][1]['text'] ?? '') : 'Schedule Consultation' }}">
+                                        </div>
+                                      {{-- <!-- <div class="form-group">
+                                            <label class="form-label">Button Icon</label>
+                                            <input type="text" class="form-control" name="cta_button2_icon" placeholder="fas fa-calendar" value="{{ isset($footerCtaContent) && $footerCtaContent ? ($footerCtaContent->content_json['buttons'][1]['icon'] ?? '') : 'fas fa-calendar' }}">
+                                        </div> --> --}}
+                                     
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Save Footer CTA Section
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Section navigation
+    document.querySelectorAll('.section-nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all links and sections
+            document.querySelectorAll('.section-nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+            
+            // Add active class to clicked link
+            this.classList.add('active');
+            
+            // Show corresponding section
+            const sectionId = this.getAttribute('data-section') + '-section';
+            document.getElementById(sectionId).classList.add('active');
+        });
+    });
+
+    // Toggle switch functionality
+    const toggleSwitches = document.querySelectorAll('.section-toggle input[type="checkbox"]');
+    toggleSwitches.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            
+            // Map switch IDs to section names
+            const sectionMapping = {
+                'heroSwitch': 'hero',
+                'whoWeAreSwitch': 'who_we_are',
+                'whatWeDoSwitch': 'what_we_do',
+                'missionVisionSwitch': 'mission_vision',
+                'whyQubifySwitch': 'why_qubify',
+                'coCreationSwitch': 'co_creation',
+                'footerCtaSwitch': 'footer_cta'
+            };
+            
+            const sectionName = sectionMapping[this.id];
+            
+            // Update label text
+            label.textContent = this.checked ? 'On' : 'Off';
+            
+            // Send AJAX request to update section status
+            const formData = new FormData();
+            formData.append('section_name', sectionName);
+            formData.append('is_active', this.checked ? '1' : '0');
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+            
+            fetch('/admin/aboutpage/toggle-section', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('success', data.message);
+                } else {
+                    showNotification('error', data.message);
+                    // Revert toggle state on error
+                    this.checked = !this.checked;
+                    label.textContent = this.checked ? 'On' : 'Off';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('error', 'An error occurred while updating section status');
+                // Revert toggle state on error
+                this.checked = !this.checked;
+                label.textContent = this.checked ? 'On' : 'Off';
+            });
+        });
+    });
+
+
+
+    // Form submissions
+    document.getElementById('heroForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const button = this.querySelector('button[type="submit"]');
+        
+        // Show loading state
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        button.disabled = true;
+        
+        // Add CSRF token to form data
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        
+        // Send AJAX request
+        fetch('/admin/aboutpage/save-hero', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success state
+                button.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                button.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+                
+                // Show success message
+                showNotification('success', data.message);
+            } else {
+                // Show error state
+                button.innerHTML = '<i class="fas fa-times"></i> Error';
+                button.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                
+                // Show error message
+                showNotification('error', data.message);
+            }
+            
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                button.innerHTML = '<i class="fas fa-save"></i> Save Hero Section';
+                button.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
+                button.disabled = false;
+            }, 3000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            button.innerHTML = '<i class="fas fa-times"></i> Error';
+            button.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+            showNotification('error', 'An error occurred while saving');
+            
+            setTimeout(() => {
+                button.innerHTML = '<i class="fas fa-save"></i> Save Hero Section';
+                button.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
+                button.disabled = false;
+            }, 3000);
+        });
+    });
+
+    // Similar form submission handlers for other sections
+    const forms = [
+        { id: 'whoWeAreForm', url: '/admin/aboutpage/save-who-we-are', buttonText: 'Save Who We Are Section' },
+        { id: 'whatWeDoForm', url: '/admin/aboutpage/save-what-we-do', buttonText: 'Save What We Do Section' },
+        { id: 'missionVisionForm', url: '/admin/aboutpage/save-mission-vision', buttonText: 'Save Mission & Vision Section' },
+        { id: 'whyQubifyForm', url: '/admin/aboutpage/save-why-qubify', buttonText: 'Save Why Qubify Section' },
+        { id: 'coCreationForm', url: '/admin/aboutpage/save-co-creation', buttonText: 'Save Co-Creation Process Section' },
+        { id: 'footerCtaForm', url: '/admin/aboutpage/save-footer-cta', buttonText: 'Save Footer CTA Section' }
+    ];
+
+    forms.forEach(form => {
+        document.getElementById(form.id).addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const button = this.querySelector('button[type="submit"]');
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            button.disabled = true;
+            
+            // Add CSRF token to form data
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+            
+            // Send AJAX request
+            fetch(form.url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success state
+                    button.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                    button.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+                    
+                    // Show success message
+                    showNotification('success', data.message);
+                } else {
+                    // Show error state
+                    button.innerHTML = '<i class="fas fa-times"></i> Error';
+                    button.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                    
+                    // Show error message
+                    showNotification('error', data.message);
+                }
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    button.innerHTML = `<i class="fas fa-save"></i> ${form.buttonText}`;
+                    button.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
+                    button.disabled = false;
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.innerHTML = '<i class="fas fa-times"></i> Error';
+                button.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                showNotification('error', 'An error occurred while saving');
+                
+                setTimeout(() => {
+                    button.innerHTML = `<i class="fas fa-save"></i> ${form.buttonText}`;
+                    button.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
+                    button.disabled = false;
+                }, 3000);
+            });
+        });
+    });
+
+    // Show notification
+
+    function showNotification(type, message) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+</script>
+
+@endsection

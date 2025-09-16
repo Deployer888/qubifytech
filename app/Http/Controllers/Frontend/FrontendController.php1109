@@ -1,0 +1,706 @@
+<?php
+
+namespace App\Http\Controllers\Frontend;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+// Aadhar-related imports removed
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+use App\Mail\ContactFormMail;
+use App\Mail\ContactConfirmationMail;
+use Modules\DynamicPage\Entities\DynamicContent;
+use Modules\DynamicPage\Entities\Page;
+use Modules\DynamicPage\Entities\PageType;
+use Modules\DynamicPage\Entities\CustomSeo;
+
+class FrontendController extends Controller
+{
+    // UIDAI service removed (was part of Aadhar functionality)
+    
+    /**
+     * Retrieves the view for the index page of the frontend.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function index()
+    {
+         // Check if the authenticated user has the 'admin' role
+        if (auth()->check() && auth()->user()->roles->contains('name', 'super admin')) {
+            return redirect()->route('backend.dashboard');
+        }
+        
+        // Fetch all dynamic content sections for the homepage
+
+        $dynamicSections = $this->getHomepageSections();
+
+        $seo = CustomSeo::where('page_id', 1)->where('page_type_id', 1)->first();
+        return view('frontend.index', array_merge(
+            $dynamicSections,
+            ['seo' => $seo]
+        ));
+    }
+
+    public function services()
+    {
+        // Get the services page from database
+        $dynamicContents = DynamicContent::where('page_id', 4)
+            ->where('page_type_id', 4)
+            ->active()
+            ->ordered()
+            ->get()
+            ->keyBy('section_name');
+       
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'servicesHeaderContent' => $dynamicContents->get('services_header'),
+            'webDevelopmentContent' => $dynamicContents->get('web_development'),
+            'softwareDevelopmentContent' => $dynamicContents->get('software_development'),
+            'mobileDevelopmentContent' => $dynamicContents->get('mobile_development'),
+            'webAppDevelopmentContent' => $dynamicContents->get('web_app_development'),
+            'whyQubifyContent' => $dynamicContents->get('why_qubify'),
+            'technologiesContent' => $dynamicContents->get('technologies'),
+            'ctaContent' => $dynamicContents->get('cta'),
+        ];
+        $seo = CustomSeo::where('page_id', 4)->where('page_type_id', 4)->first();
+        return view('frontend.services.index', array_merge(
+            $sections,
+            ['seo' => $seo]
+        ));
+    }
+
+    /**
+     * Get all homepage sections from database
+     *
+     * @return array
+     */
+    private function getHomepageSections()
+    {
+        // Fetch all active sections ordered by their order_by field
+ 
+        $sections = DynamicContent::where('page_id', 1)
+        ->where('page_type_id', 1)
+        ->active()
+        ->ordered()
+        ->get()
+        ->keyBy('section_name');
+
+        // Return individual sections for easy access in views
+        return [
+            'heroContent' => $sections->get('hero'),
+            'aboutContent' => $sections->get('about'),
+            'servicesContent' => $sections->get('services'),
+            'solutionsContent' => $sections->get('solutions'),
+            'portfolioContent' => $sections->get('portfolio'),
+            'testimonialsContent' => $sections->get('testimonials'),
+            'ctaContent' => $sections->get('cta'),
+            'contactContent' => $sections->get('contact'),
+            'allSections' => $sections, // For any additional processing
+        ];
+    }
+
+    public function submit(Request $request)
+    {
+        // Log the incoming request for debugging
+        \Log::info('Contact form submission data:', $request->all());
+        
+        // Validate the form data
+        $validator = Validator::make($request->all(), [
+            'uname' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'solution' => 'nullable|string',
+            'budget' => 'nullable|string',
+            'message' => 'required|string|max:2000',
+        ], [
+            'uname.required' => 'Full name is required.',
+            'uname.max' => 'Full name must not exceed 255 characters.',
+            'email.required' => 'Email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.max' => 'Email must not exceed 255 characters.',
+            'phone.max' => 'Phone number must not exceed 20 characters.',
+            'message.required' => 'Message is required.',
+            'message.max' => 'Message must not exceed 2000 characters.',
+        ]);
+
+        // Return validation errors if any
+        if ($validator->fails()) {
+            \Log::warning('Contact form validation failed:', $validator->errors()->toArray());
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error', 'Please check the form and fix the errors.');
+        }
+
+        try {
+            $formData = $validator->validated();
+            
+            // Additional validation to ensure email is actually an email
+            $userEmail = filter_var($formData['email'], FILTER_VALIDATE_EMAIL);
+            if (!$userEmail) {
+                \Log::error('Invalid email format after validation:', ['email' => $formData['email']]);
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Please enter a valid email address.');
+            }
+            
+            // Clean and sanitize the data
+            $cleanData = [
+                'uname' => trim(strip_tags($request->uname)),
+                'email' => trim(strtolower($request->email)),
+                'phone' => $request->phone ? trim(strip_tags($request->phone)) : null,
+                'solution' => $request->solution ? trim(strip_tags($request->solution)) : null,
+                'budget' => $request->budget ? trim(strip_tags($request->budget)) : null,
+                'message' => trim(strip_tags($request->message)),
+            ];
+
+            \Log::info('Sending emails with clean data:', [
+                'admin_email' => 'abhishek@qubifytech.com',
+                'user_email' => $cleanData['email'],
+                'user_name' => $cleanData['uname']
+            ]);
+
+            // Send emails
+            $this->sendContactEmails($cleanData);
+            
+            \Log::info('Contact form emails sent successfully');
+            
+            return redirect()->back()->with('success', 'Thank you for your message! We\'ll get back to you within 24 hours.');
+            
+        } catch (\Exception $e) {
+        dd($e->getMessage());
+            \Log::error('Contact form submission error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Sorry, there was an error sending your message. Please try again later.');
+        }
+    }
+
+    /**
+     * Send contact form emails to admin and user
+     *
+     * @param array $cleanData
+     * @throws \Exception
+     */
+    private function sendContactEmails(array $cleanData)
+    {
+        try {
+            // Send email to admin using ContactFormMail mailable
+            Mail::to('chitranshu@qubifytech.com')->send(new ContactFormMail($cleanData));
+            Mail::to('abhishek  @qubifytech.com')->send(new ContactFormMail($cleanData));
+
+            // Send confirmation email to user using ContactConfirmationMail mailable
+            Mail::to($cleanData['email'])->send(new ContactConfirmationMail($cleanData));
+            
+        } catch (\Exception $mailException) {
+            \Log::error('Failed to send emails: ' . $mailException->getMessage());
+            throw $mailException;
+        }
+    }
+    
+    // Aadhar verification methods removed
+
+    /**
+     * About Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function solutions()
+    {
+        $dynamicContents = DynamicContent::where('page_id', 5)
+        ->where('page_type_id', 26)
+        ->active()
+        ->ordered()
+        ->get()
+        ->keyBy('section_name');
+
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'solutionsHeaderContent' => $dynamicContents->get('solutions_header'),
+            'solutionsItemsContent' => $dynamicContents->get('solutions_items'),
+            'whyQubifyContent' => $dynamicContents->get('why_qubify'),
+            'industriesContent' => $dynamicContents->get('industries'),
+            'ctaContent' => $dynamicContents->get('cta'),
+        ];
+       return view('frontend.solutions.index',compact('sections'));
+    }
+
+    /**
+     * About Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function about()
+    {
+        $seo = CustomSeo::where('page_id', 2)->where('page_type_id', 2)->first();
+        return view('frontend.about', compact('seo'));
+    }
+
+    /**
+     * Contact Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function contact()
+    {
+        $seo = CustomSeo::where('page_id', 3)->where('page_type_id', 3)->first();
+        return view('frontend.contact', compact('seo'));
+    }
+
+    /**
+     * Privacy Policy Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function privacy()
+    {
+        return view('frontend.privacy');
+    }
+
+    /**
+     * Privacy Policy Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function solutionsHrms()
+    {
+         // Get the services page from database
+     $dynamicContents = DynamicContent::where('page_id', 5)
+         ->where('page_type_id', 14)
+         ->active()
+         ->ordered()
+         ->get()
+         ->keyBy('section_name');
+     
+     // Organize sections for easy access in views
+     $sections = [
+         'heroContent' => $dynamicContents->get('hero'),
+         'introContent' => $dynamicContents->get('intro'),
+         'coreFeaturesContent' => $dynamicContents->get('core_features'),
+         'benefitsContent' => $dynamicContents->get('benefits'),
+         'useCasesContent' => $dynamicContents->get('use_cases'),
+         'testimonialContent' => $dynamicContents->get('testimonials'),
+         'finalCtaContent' => $dynamicContents->get('final_cta'),
+     ];
+
+        $seo = CustomSeo::where('page_id', 5)->where('page_type_id', 14)->first();
+        return view('frontend.solutions.hrms',compact('sections','seo'));
+    }
+
+    /**
+     * CRM Solution Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function solutionsCrm()
+    {
+        // Get the CRM page from database
+        $dynamicContents = DynamicContent::where('page_id', 5)
+        ->where('page_type_id', 15)
+        ->active()
+        ->ordered()
+        ->get()
+        ->keyBy('section_name');
+    
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'coreFeaturesContent' => $dynamicContents->get('core_features'),
+            'whyTrustContent' => $dynamicContents->get('why_trust'),
+            'useCasesContent' => $dynamicContents->get('use_cases'),
+            'testimonialContent' => $dynamicContents->get('testimonials'),
+            'finalCtaContent' => $dynamicContents->get('final_cta'),
+        ];
+        $seo = CustomSeo::where('page_id', 5)->where('page_type_id', 15)->first();
+        return view('frontend.solutions.crm', compact('sections','seo'));
+    }
+
+    /**
+     * VMS Solution Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function solutionsVms()
+    {
+        $dynamicContents = DynamicContent::where('page_id', 5)
+        ->where('page_type_id', 16)
+        ->active()
+        ->ordered()
+        ->get()
+        ->keyBy('section_name');
+    
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'keyBenefitsContent' => $dynamicContents->get('key_benefits'),
+            'coreFeaturesContent' => $dynamicContents->get('core_features'),
+            'realSecurityContent' => $dynamicContents->get('real_security'),
+            'whyTrustContent' => $dynamicContents->get('why_trust'),
+            'testimonialContent' => $dynamicContents->get('testimonials'),
+            'finalCtaContent' => $dynamicContents->get('final_cta'),
+        ];
+        $seo = CustomSeo::where('page_id', 5)->where('page_type_id', 16)->first();
+        return view('frontend.solutions.vms', compact('sections','seo'));
+    }
+
+    /**
+     * HIS Solution Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function solutionsHis()
+    {
+      $dynamicContents = DynamicContent::where('page_id', 5)
+        ->where('page_type_id', 17)
+        ->active()
+        ->ordered()
+        ->get()
+        ->keyBy('section_name');
+    
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'whyChooseContent' => $dynamicContents->get('why_choose'),
+            'coreFeaturesContent' => $dynamicContents->get('core_features'),
+            'whyTrustContent' => $dynamicContents->get('why_trust'),
+            'useCasesContent' => $dynamicContents->get('use_cases'),
+            'testimonialContent' => $dynamicContents->get('testimonials'),
+            'finalCtaContent' => $dynamicContents->get('final_cta'),
+        ];
+        $seo = CustomSeo::where('page_id', 5)->where('page_type_id', 17)->first();
+        return view('frontend.solutions.his',compact('sections','seo'));
+    }
+
+    /**
+     * POS Solution Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function solutionsPos()
+    {
+     $dynamicContents = DynamicContent::where('page_id', 5)
+        ->where('page_type_id', 18)
+        ->active()
+        ->ordered()
+        ->get()
+        ->keyBy('section_name');
+    
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'coreFeaturesContent' => $dynamicContents->get('core_features'),
+            'advancedToolsContent' => $dynamicContents->get('advanced_tools'),
+            'adminControlContent' => $dynamicContents->get('admin_control'),
+            'whyChooseContent' => $dynamicContents->get('why_choose'),
+            'industriesContent' => $dynamicContents->get('industries'),
+            'finalCtaContent' => $dynamicContents->get('final_cta'),
+        ];
+        $seo = CustomSeo::where('page_id', 5)->where('page_type_id', 18)->first();
+        return view('frontend.solutions.pos', compact('sections','seo'));
+    }
+
+    /**
+     * VPS Solution Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function solutionsVps()
+    {
+     $dynamicContents = DynamicContent::where('page_id', 5)
+        ->where('page_type_id', 19)
+        ->active()
+        ->ordered()
+        ->get()
+        ->keyBy('section_name');
+    
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'coreFeaturesContent' => $dynamicContents->get('core_features'),
+            'hardwareIntegrationContent' => $dynamicContents->get('hardware_integration'),
+            'industriesContent' => $dynamicContents->get('industries'),
+            'scalabilityContent' => $dynamicContents->get('scalability'),
+            'testimonialContent' => $dynamicContents->get('testimonials'),
+            'finalCtaContent' => $dynamicContents->get('final_cta'),
+        ];
+        $seo = CustomSeo::where('page_id', 5)->where('page_type_id', 19)->first();
+        return view('frontend.solutions.vps',compact('sections','seo'));
+    }
+
+    /**
+     * VTS Solution Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function solutionsVts()
+    {
+        $dynamicContents = DynamicContent::where('page_id', 5)
+        ->where('page_type_id', 20)
+        ->active()
+        ->ordered()
+        ->get()
+        ->keyBy('section_name');
+    
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'coreFeaturesContent' => $dynamicContents->get('core_features'),
+            'additionalFeaturesContent' => $dynamicContents->get('additional_features'),
+            'hardwareIntegrationContent' => $dynamicContents->get('hardware_integration'),
+            'useCasesContent' => $dynamicContents->get('use_cases'),
+            'benefitsContent' => $dynamicContents->get('benefits'),
+            'testimonialContent' => $dynamicContents->get('testimonials'),
+            'finalCtaContent' => $dynamicContents->get('final_cta'),
+        ];
+        $seo = CustomSeo::where('page_id', 5)->where('page_type_id', 20)->first();
+        return view('frontend.solutions.vts', compact('sections','seo'));
+    }
+
+    /**
+     * DDS Solution Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function solutionsDds()
+    {
+        $dynamicContents = DynamicContent::where('page_id', 5)
+            ->where('page_type_id', 21)
+            ->active()
+            ->ordered()
+            ->get()
+            ->keyBy('section_name');
+        
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'coreFeaturesContent' => $dynamicContents->get('core_features'),
+            'additionalFeaturesContent' => $dynamicContents->get('additional_features'),
+            'useCasesContent' => $dynamicContents->get('use_cases'),
+            'highlightsContent' => $dynamicContents->get('highlights'),
+            'testimonialContent' => $dynamicContents->get('testimonials'),
+            'finalCtaContent' => $dynamicContents->get('final_cta'),
+        ];
+        $seo = CustomSeo::where('page_id', 5)->where('page_type_id', 21)->first();
+        return view('frontend.solutions.dds', compact('sections','seo'));
+    }
+
+    /**
+     * Terms & Conditions Page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function terms()
+    {
+        return view('frontend.terms');
+    }
+
+    /**
+     * Services Page - Dynamic Content
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function webDev()
+    {
+        // Get the services page from database
+        $dynamicContents = DynamicContent::where('page_id', 4)
+            ->where('page_type_id', 7)
+            ->active()
+            ->ordered()
+            ->get()
+            ->keyBy('section_name');
+        
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'coreServicesContent' => $dynamicContents->get('core_services'),
+            'additionalServicesContent' => $dynamicContents->get('additional_services'),
+            'whyChooseUsContent' => $dynamicContents->get('why_choose_us'),
+            'processContent' => $dynamicContents->get('custom_process'),
+            'crossHairContent' => $dynamicContents->get('cross_hair'),
+            'customWebDevContent' => $dynamicContents->get('custom_web_dev'),
+            'whyNeedCustomContent' => $dynamicContents->get('why_need_custom'),
+            'servicesOfferedContent' => $dynamicContents->get('services_offered'),
+            'faqContent' => $dynamicContents->get('faq'),
+            'allSections' => $dynamicContents, // For any additional processing
+        ];
+        $seo = CustomSeo::where('page_id', 4)->where('page_type_id', 7)->first();
+        return view('frontend.services.web_dev_service', array_merge(
+            $sections,
+            ['seo' => $seo]
+        ));
+    }
+
+    public function softwareDev()
+    {
+        // Get the services page from database
+        $dynamicContents = DynamicContent::where('page_id', 4)
+            ->where('page_type_id', 9)
+            ->active()
+            ->ordered()
+            ->get()
+            ->keyBy('section_name');
+        
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'coreServicesContent' => $dynamicContents->get('core_services'),
+            'specializedServicesContent' => $dynamicContents->get('specialized_services'),
+            'additionalServicesContent' => $dynamicContents->get('additional_services'),
+            'technologyStackContent' => $dynamicContents->get('technology_stack'),
+            'processContent' => $dynamicContents->get('process'),
+            'methodologiesContent' => $dynamicContents->get('methodologies'),
+            'developmentStepsContent' => $dynamicContents->get('development_steps'),
+            'benefitsContent' => $dynamicContents->get('benefits'),
+            'understandingProcessContent' => $dynamicContents->get('understanding_process'),
+            'whyChooseUsContent' => $dynamicContents->get('why_choose_us'),
+            'whatMakesDifferentContent' => $dynamicContents->get('what_makes_different'),
+            'customBenefitsContent' => $dynamicContents->get('custom_benefits'),
+            'customDevelopmentContent' => $dynamicContents->get('custom_development'),
+            'industriesContent' => $dynamicContents->get('industries'),
+            'onDemandDevelopersContent' => $dynamicContents->get('on_demand_developers'),
+            'faqContent' => $dynamicContents->get('faq'),
+            'allSections' => $dynamicContents, // For any additional processing
+        ];
+
+        $seo = CustomSeo::where('page_id', 4)->where('page_type_id', 9)->first();
+        return view('frontend.services.software_dev_service', array_merge(
+            $sections,
+            ['seo' => $seo]
+        ));
+    }
+
+    public function webApp()
+    {
+        // Get the services page from database
+        $dynamicContents = DynamicContent::where('page_id', 4)
+            ->where('page_type_id', 10)
+            ->active()
+            ->ordered()
+            ->get()
+            ->keyBy('section_name');
+        
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'whoWeServeContent' => $dynamicContents->get('who_we_serve'),
+            'webAppsDeliverContent' => $dynamicContents->get('web_apps_deliver'),
+            'industriesContent' => $dynamicContents->get('industries'),
+            'servicesContent' => $dynamicContents->get('services'),
+            'benefitsContent' => $dynamicContents->get('benefits'),
+            'techStackContent' => $dynamicContents->get('tech_stack'),
+            'faqContent' => $dynamicContents->get('faq')
+        ];
+        $seo = CustomSeo::where('page_id', 4)->where('page_type_id', 10)->first();
+        return view('frontend.services.web_app_dev_service', array_merge(
+            $sections,
+            ['seo' => $seo]
+        ));
+    }
+
+    public function mobileApp()
+    {
+        // Get the services page from database
+        $dynamicContents = DynamicContent::where('page_id', 4)
+            ->where('page_type_id', 11)
+            ->active()
+            ->ordered()
+            ->get()
+            ->keyBy('section_name');
+        
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'futureReadyContent' => $dynamicContents->get('future_ready'),
+            'servicesContent' => $dynamicContents->get('services'),
+            'additionalServicesContent' => $dynamicContents->get('additional_services'),
+            'techStackContent' => $dynamicContents->get('tech_stack'),
+            'industrySolutionsContent' => $dynamicContents->get('industry_solutions'),
+            'whyChooseUsContent' => $dynamicContents->get('why_choose_us'),
+            'howWeWorkContent' => $dynamicContents->get('how_we_work'),
+            'faqContent' => $dynamicContents->get('faq')
+        ];
+        $seo = CustomSeo::where('page_id', 4)->where('page_type_id', 11)->first();
+        return view('frontend.services.mobile_app_dev_service', array_merge(
+            $sections,
+            ['seo' => $seo]
+        ));
+    }
+
+    public function mvp()
+    {
+        // Get the services page from database
+        $dynamicContents = DynamicContent::where('page_id', 4)
+            ->where('page_type_id', 12)
+            ->active()
+            ->ordered()
+            ->get()
+            ->keyBy('section_name');
+        
+        // Organize sections for easy access in views
+        $sections = [
+            'heroContent' => $dynamicContents->get('hero'),
+            'introContent' => $dynamicContents->get('intro'),
+            'whatWeOfferContent' => $dynamicContents->get('what_we_offer'),
+            'additionalServicesContent' => $dynamicContents->get('additional_services'),
+            'expertiseContent' => $dynamicContents->get('expertise'),
+            'techStackContent' => $dynamicContents->get('tech_stack'),
+            'mvpProcessContent' => $dynamicContents->get('mvp_process'),
+            'keyBenefitsContent' => $dynamicContents->get('key_benefits'),
+            'mvpMethodologiesContent' => $dynamicContents->get('mvp_methodologies'),
+            'developmentTimelineContent' => $dynamicContents->get('development_timeline'),
+            'whyQubifyContent' => $dynamicContents->get('why_qubify'),
+            'mvpProcessActuallyContent' => $dynamicContents->get('mvp_process_actually'),
+            'hireDevelopersContent' => $dynamicContents->get('hire_developers'),
+            'industriesContent' => $dynamicContents->get('industries'),
+            'faqContent' => $dynamicContents->get('faq')
+        ];
+        $seo = CustomSeo::where('page_id', 4)->where('page_type_id', 12)->first();
+        return view('frontend.services.mvp_dev_service', array_merge(
+            $sections,
+            ['seo' => $seo]
+        ));
+    }
+
+    /**
+     * Get all services page sections from database
+     *
+     * @param \Modules\DynamicPage\Entities\Page $servicesPage
+     * @return array
+     */
+    private function getServicesSections($servicesPage)
+    {
+        // Fetch all active sections for the services page ordered by their order_by field
+        $sections = $servicesPage->activeDynamicContents()
+            ->get()
+            ->keyBy('section_name');
+
+        // Return individual sections for easy access in views
+        return [
+            'pageContent' => $servicesPage,
+            'heroContent' => $sections->get('hero'),
+            'introContent' => $sections->get('intro'),
+            'coreServicesContent' => $sections->get('core_services'),
+            'additionalServicesContent' => $sections->get('additional_services'),
+            'ctaContent' => $sections->get('cta'),
+            'allSections' => $sections, // For any additional processing
+        ];
+    }
+}

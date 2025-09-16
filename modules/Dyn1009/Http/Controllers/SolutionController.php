@@ -1,0 +1,678 @@
+<?php
+
+namespace Modules\DynamicPage\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Modules\DynamicPage\Entities\Page;   
+use Modules\DynamicPage\Entities\PageType;
+use Modules\DynamicPage\Entities\DynamicContent;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\JsonResponse;
+
+class SolutionController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    // public function index()
+    // {
+
+    //     return view('dynamicpage::solutionspage.index');
+    // }
+
+    public function index()
+    {
+        // Get or create the Solutions page
+        $page = $this->getOrCreateSolutionsPage();
+        $pageType = $this->getOrCreatePageType($page->id, 'solutionpages');
+        
+        // Get existing content for all sections
+        $heroContent = $this->getSectionContent($page->id, $pageType->id, 'hero');
+        $solutionsHeaderContent = $this->getSectionContent($page->id, $pageType->id, 'solutions_header');
+        $solutionsItemsContent = $this->getSectionContent($page->id, $pageType->id, 'solutions_items');
+        $whyQubifyContent = $this->getSectionContent($page->id, $pageType->id, 'why_qubify');
+        $industriesContent = $this->getSectionContent($page->id, $pageType->id, 'industries');
+        $ctaContent = $this->getSectionContent($page->id, $pageType->id, 'cta');
+       
+        return view('dynamicpage::solutionspage.index', compact(
+            'page', 
+            'heroContent', 
+            'solutionsHeaderContent', 
+            'solutionsItemsContent',
+            'whyQubifyContent',
+            'industriesContent',
+            'ctaContent'
+        ));
+    }
+
+    /**
+     * Get or create the Solutions page
+     */
+    private function getOrCreateSolutionsPage(): Page
+    {
+        return Page::firstOrCreate(
+            ['name' => 'solutionpages'],
+            [
+                'name' => 'solutionpages'
+            ]
+        );
+    }
+
+    /**
+     * Get or create page type for the given page
+     */
+    private function getOrCreatePageType(int $pageId, string $type): PageType
+    {
+        return PageType::firstOrCreate(
+            [
+                'page_id' => $pageId,
+                'type' => $type
+            ]
+        );
+    }
+
+    /**
+     * Get section content by page ID and section name
+     */
+    private function getSectionContent($pageId, $pageTypeId, $sectionName)
+    {
+        return DynamicContent::where('page_id', $pageId)
+            ->where('page_type_id', $pageTypeId)
+            ->where('section_name', $sectionName)
+            ->first();
+    }
+
+    /**
+     * Save Hero Section
+     */
+    public function saveHeroSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'hero_title' => 'required|string|max:500',
+            'hero_subtitle' => 'required|string',
+            'button1_text' => 'required|string|max:100',
+            'button1_url' => 'required|string|max:255',
+            'button2_text' => 'required|string|max:100',
+            'button2_url' => 'required|string|max:255',
+            'is_active' => 'boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateSolutionsPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'solutionpages');
+
+            // Prepare content data
+            $contentData = [
+                'title' => $request->hero_title,
+                'subtitle' => $request->hero_subtitle,
+                'buttons' => [
+                    [
+                        'text' => $request->button1_text,
+                        'url' => $request->button1_url,
+                        'classes' => 'btn-primary'
+                    ],
+                    [
+                        'text' => $request->button2_text,
+                        'url' => $request->button2_url,
+                        'classes' => 'btn-secondary'
+                    ]
+                ]
+            ];
+
+            // Save or update hero section
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'hero'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 1,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Hero section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving hero section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save Solutions Header Section
+     */
+    public function saveSolutionsHeaderSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'solutions_title' => 'required|string|max:255',
+            'solutions_subtitle' => 'required|string',
+            'is_active' => 'boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateSolutionsPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'solutionpages');
+
+            $contentData = [
+                'title' => $request->solutions_title,
+                'subtitle' => $request->solutions_subtitle
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'solutions_header'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 2,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Solutions header section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving solutions header section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save Solutions Items Section
+     */
+    // public function saveSolutionsItemsSection(Request $request): JsonResponse
+    // {
+    //     $validationRules = [
+    //         'is_active' => 'boolean'
+    //     ];
+
+    //     // Add validation rules for all 8 solutions
+    //     for ($i = 1; $i <= 8; $i++) {
+    //         $validationRules = array_merge($validationRules, [
+    //             "solution{$i}_category" => 'required|string|max:255',
+    //             "solution{$i}_title" => 'required|string|max:255',
+    //             "solution{$i}_description" => 'required|string',
+    //             "solution{$i}_use_case" => 'required|string',
+    //             "solution{$i}_button_text" => 'required|string|max:100',
+    //             "solution{$i}_button_url" => 'required|string|max:255',
+    //             "solution{$i}_image" => 'required|string|max:500',
+    //         ]);
+    //     }
+
+    //     $validator = Validator::make($request->all(), $validationRules);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Validation failed',
+    //             'errors' => $validator->errors()
+    //         ], 422);
+    //     }
+
+    //     try {
+    //         DB::beginTransaction();
+
+    //         $page = $this->getOrCreateSolutionsPage();
+    //         $pageType = $this->getOrCreatePageType($page->id, 'solutions');
+
+    //         // Build solutions array
+    //         $solutions = [];
+    //         for ($i = 1; $i <= 8; $i++) {
+    //             $solutions[] = [
+    //                 'category' => $request->input("solution{$i}_category"),
+    //                 'title' => $request->input("solution{$i}_title"),
+    //                 'description' => $request->input("solution{$i}_description"),
+    //                 'use_case' => $request->input("solution{$i}_use_case"),
+    //                 'button_text' => $request->input("solution{$i}_button_text"),
+    //                 'button_url' => $request->input("solution{$i}_button_url"),
+    //                 'image' => $request->input("solution{$i}_image")
+    //             ];
+    //         }
+
+    //         $contentData = [
+    //             'solutions' => $solutions
+    //         ];
+
+    //         // Save or update solutions items section
+    //         DynamicContent::updateOrCreate(
+    //             [
+    //                 'page_id' => $page->id,
+    //                 'page_type_id' => $pageType->id,
+    //                 'section_name' => 'solutions_items'
+    //             ],
+    //             [
+    //                 'content_json' => $contentData,
+    //                 'order_by' => 3,
+    //                 'is_active' => $request->boolean('is_active', true)
+    //             ]
+    //         );
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Solutions items section saved successfully!'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+            
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Error saving solutions items section: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+    public function saveSolutionsItemsSection(Request $request): JsonResponse
+    {
+        $validationRules = [
+            'is_active' => 'boolean'
+        ];
+
+        // Add validation rules for all 8 solutions
+        for ($i = 1; $i <= 8; $i++) {
+            $validationRules = array_merge($validationRules, [
+                "solution{$i}_category" => 'required|string|max:255',
+                "solution{$i}_title" => 'required|string|max:255',
+                "solution{$i}_description" => 'required|string',
+                "solution{$i}_use_case" => 'required|string',
+                "solution{$i}_button_text" => 'required|string|max:100',
+                "solution{$i}_button_url" => 'required|string|max:255',
+                "solution{$i}_image" => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ]);
+        }
+
+        $validator = Validator::make($request->all(), $validationRules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateSolutionsPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'solutionpages');
+
+            // Get existing content to preserve existing images
+            $existingContent = $this->getSectionContent($page->id, $pageType->id, 'solutions_items');
+            $existingSolutions = $existingContent ? $existingContent->content_json['solutions'] ?? [] : [];
+
+            // Build solutions array
+            $solutions = [];
+            for ($i = 1; $i <= 8; $i++) {
+                $imagePath = null;
+
+                // Handle image upload
+                if ($request->hasFile("solution{$i}_image")) {
+                    $image = $request->file("solution{$i}_image");
+                    $imageName = 'solution_' . $i . '_' . time() . '.' . $image->getClientOriginalExtension();
+                    
+                    // Store in storage/app/public/solutions directory
+                    $imagePath = $image->storeAs('solutions', $imageName, 'public');
+                    
+                    // Delete old image if exists
+                    if (!empty($existingSolutions[$i-1]['image']) && \Storage::disk('public')->exists($existingSolutions[$i-1]['image'])) {
+                        \Storage::disk('public')->delete($existingSolutions[$i-1]['image']);
+                    }
+                } else {
+                    // Keep existing image if no new image uploaded
+                    $imagePath = $existingSolutions[$i-1]['image'] ?? null;
+                }
+
+                $solutions[] = [
+                    'category' => $request->input("solution{$i}_category"),
+                    'title' => $request->input("solution{$i}_title"),
+                    'description' => $request->input("solution{$i}_description"),
+                    'use_case' => $request->input("solution{$i}_use_case"),
+                    'button_text' => $request->input("solution{$i}_button_text"),
+                    'button_url' => $request->input("solution{$i}_button_url"),
+                    'image' => $imagePath
+                ];
+            }
+
+            $contentData = [
+                'solutions' => $solutions
+            ];
+
+            // Save or update solutions items section
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'solutions_items'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 3,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Solutions items section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving solutions items section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save Why Qubify Section
+     */
+    public function saveWhyQubifySection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'why_title' => 'required|string|max:255',
+            'why_paragraph1' => 'required|string',
+            'why_paragraph2' => 'required|string',
+            'is_active' => 'boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateSolutionsPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'solutionpages');
+
+            $contentData = [
+                'title' => $request->why_title,
+                'paragraph1' => $request->why_paragraph1,
+                'paragraph2' => $request->why_paragraph2
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'why_qubify'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 4,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Why Qubify section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving Why Qubify section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save Industries Section
+     */
+    public function saveIndustriesSection(Request $request): JsonResponse
+    {
+        $validationRules = [
+            'industries_title' => 'required|string|max:255',
+            'industries_description' => 'required|string',
+            'is_active' => 'boolean'
+        ];
+
+        // Add validation rules for all 6 industries
+        for ($i = 1; $i <= 6; $i++) {
+            $validationRules["industry{$i}_name"] = 'required|string|max:255';
+        }
+
+        $validator = Validator::make($request->all(), $validationRules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateSolutionsPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'solutionpages');
+
+            // Build industries array
+            $industries = [];
+            for ($i = 1; $i <= 6; $i++) {
+                $industries[] = [
+                    'name' => $request->input("industry{$i}_name")
+                ];
+            }
+
+            $contentData = [
+                'title' => $request->industries_title,
+                'description' => $request->industries_description,
+                'industries' => $industries
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'industries'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 5,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Industries section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving Industries section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save CTA Section
+     */
+    public function saveCtaSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'cta_title' => 'required|string|max:255',
+            'cta_description' => 'required|string',
+            'contact_email' => 'required|email|max:255',
+            'contact_phone' => 'required|string|max:50',
+            'contact_website' => 'required|string|max:255',
+            'cta_button_text' => 'required|string|max:100',
+            'cta_button_url' => 'required|string|max:255',
+            'is_active' => 'boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateSolutionsPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'solutionpages');
+
+            $contentData = [
+                'title' => $request->cta_title,
+                'description' => $request->cta_description,
+                'contact_email' => $request->contact_email,
+                'contact_phone' => $request->contact_phone,
+                'contact_website' => $request->contact_website,
+                'button_text' => $request->cta_button_text,
+                'button_url' => $request->cta_button_url
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'cta'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 6,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'CTA section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving CTA section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle section active/inactive status
+     */
+    public function toggleSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'section_name' => 'required|string',
+            'is_active' => 'required|boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $page = $this->getOrCreateSolutionsPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'solutions');
+            
+            $content = DynamicContent::where('page_id', $page->id)
+                ->where('page_type_id', $pageType->id)
+                ->where('section_name', $request->section_name)
+                ->first();
+
+            if ($content) {
+                $content->update(['is_active' => $request->is_active]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Section status updated successfully!'
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Section not found'
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating section status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+   
+}

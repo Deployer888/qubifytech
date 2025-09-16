@@ -1,0 +1,11 @@
+{
+    "name": "DynamicPage",
+    "alias": "dynamicpage",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\DynamicPage\\Providers\\DynamicPageServiceProvider"
+    ],
+    "files": []
+}

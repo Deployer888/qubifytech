@@ -1,0 +1,34 @@
+{
+  "_livewire.esm-CbrfaqOd.js": {
+    "file": "assets/livewire.esm-CbrfaqOd.js",
+    "name": "livewire.esm"
+  },
+  "resources/assets/css/app-backend.scss": {
+    "file": "assets/app-backend-D-3ubpOk.css",
+    "src": "resources/assets/css/app-backend.scss",
+    "isEntry": true
+  },
+  "resources/assets/css/app-frontend.scss": {
+    "file": "assets/app-frontend-BA_TSQT5.css",
+    "src": "resources/assets/css/app-frontend.scss",
+    "isEntry": true
+  },
+  "resources/assets/js/app-backend.js": {
+    "file": "assets/app-backend-Be39nb5e.js",
+    "name": "app-backend",
+    "src": "resources/assets/js/app-backend.js",
+    "isEntry": true,
+    "imports": [
+      "_livewire.esm-CbrfaqOd.js"
+    ]
+  },
+  "resources/assets/js/app-frontend.js": {
+    "file": "assets/app-frontend-BhJNch1Q.js",
+    "name": "app-frontend",
+    "src": "resources/assets/js/app-frontend.js",
+    "isEntry": true,
+    "imports": [
+      "_livewire.esm-CbrfaqOd.js"
+    ]
+  }
+}

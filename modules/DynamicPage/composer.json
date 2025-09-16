@@ -1,0 +1,31 @@
+{
+    "name": "star/dynamicpage",
+    "description": "",
+    "authors": [
+        {
+            "name": "Star",
+            "email": "star@locol.dev"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\DynamicPage\\": "",
+            "Modules\\DynamicPage\\App\\": "app/",
+            "Modules\\DynamicPage\\Database\\Factories\\": "database/factories/",
+            "Modules\\DynamicPage\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\DynamicPage\\Tests\\": "tests/"
+        }
+    }
+}

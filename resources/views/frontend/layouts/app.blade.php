@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="{{ app()->getLocale() }}">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <!-- <title>@yield('title') | {{ config('app.name') }}</title> -->
+
+    <title>{{ $seo->content_json['meta_title'] ?? "QubifyTech" }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- <meta name="title" property="og:title" content="@yield('title') | {{ config('app.name') }}" /> -->
+    <meta name="title" property="og:title" content="{{ $seo->content_json['meta_title'] ?? 'QubifyTech' }}" />
+    <meta name="site_name" content="{{setting('meta_site_name')}}" />
+    <meta name="url" property="og:url" content="{{url()->full()}}" />
+    <!-- <meta name="description" property="og:description" content="{{ setting('meta_description') }}"> -->
+    <meta name="description" property="og:description" content="{{ $seo->content_json['meta_description'] ?? '' }}">
+    <!-- <meta name="keyword" content="{{ setting('meta_keyword') }}"> -->
+    <meta name="keyword" content="{{ collect([$seo->content_json['focus_keyphrase'] ?? null, $seo->content_json['additional_keyphrases'] ?? null])
+    ->filter()
+    ->implode(', ') }}">
+
+    <meta name="robots" content="{{ ($seo->content_json['robots_index'] ?? 'index') }}, {{ ($seo->content_json['robots_follow'] ?? 'follow') }}">
+ 
+    <meta name="image" property="og:image" content="{{ asset(setting('meta_image')) }}" />
+
+    <!--canonical link-->
+    <meta name="generator" content="Laravel CMS Starter - A modular CMS starter application built with Laravel 10.x." />
+    <!-- <link rel="canonical" href="{{url()->full()}}"> -->
+    @if(!empty($seo->content_json['canonical_url']))
+        <link rel="canonical" href="{{ $seo->content_json['canonical_url'] }}">
+    @else
+        <link rel="canonical" href="{{ url()->current() }}">
+    @endif
+    
+    @include('frontend.includes.meta')
+
+    <!-- Shortcut Icon -->
+    <link rel="shortcut icon" href="{{asset('images/favicon.png')}}">
+    <link rel="icon" type="image/svg" href="{{asset('images/favicon.png')}}" />
+    <link rel="apple-touch-icon" sizes="76x76" href="{{asset('images/favicon.png')}}">
+    <meta name="google-site-verification" content="XX54NoiYJD-7KNmEitmzmSmcMW4Mho_7AyXXcejlDmA">
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style">
+    <link rel="preload" href="{{ asset('css/base.css') }}" as="style">
+    
+    <!-- DNS Prefetch for External Resources -->
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//code.jquery.com">
+
+    <!-- Core Styles (Critical Path) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+    <!-- Google Fonts (Optimized) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Urbanist:wght@400;500;600&family=Orbitron:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- jQuery UI CSS (Loaded early for datepicker) -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ asset('css/base.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    <link href='https://fonts.googleapis.com/css?family=Quicksand' rel='stylesheet'>
+    <style>
+        /* CSS Variables and Root Styles */
+        :root {
+            --primary-blue: #0ea5e9;
+            --secondary-blue: #2563eb;
+            --accent-blue: #1e3a8a;
+            --primary-orange: #ff6b35;
+            --primary-gradient: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-light: #ffffff;
+            --text-muted: #999999;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-hero: linear-gradient(135deg, #0ea5e9 0%, #2563eb 50%, #1e3a8a 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --header-bg: rgba(255, 255, 255, 0.95);
+            --border-light: #e5e5e5;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --shadow-light: 0 4px 20px rgba(14, 165, 233, 0.08);
+            --shadow-medium: 0 8px 40px rgba(14, 165, 233, 0.12);
+            --shadow-heavy: 0 20px 60px rgba(14, 165, 233, 0.2);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --border-radius: 12px;
+            --border-radius-large: 20px;
+            --header-height: 80px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --neon-blue: #00f5ff;
+            --neon-green: #39ff14;
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-hero: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            --card-bg: rgba(26, 26, 26, 0.95);
+            --header-bg: rgba(12, 12, 12, 0.95);
+            --border-light: #333333;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --primary-gradient: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+        }
+
+        /* Global Font */
+        * {
+            font-family: 'Inter', sans-serif !important;
+        }
+ 
+        /* Footer Positioning */
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: -webkit-fill-available;
+        }
+
+        /* D&B Seal Positioning */
+        #DunsRegisteredSeal,
+        iframe[src*="dunsregistered"] {
+            position: fixed !important;
+            bottom: 20px !important;
+            left: 20px !important;
+            z-index: 999999 !important;
+            background: transparent !important;
+            width: 120px !important;
+            border: none !important;
+        }
+
+        /* Utility Classes */
+        .text-gradient {
+            background: var(--bg-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .hover-glow {
+            transition: all 0.3s ease;
+        }
+        
+        .hover-glow:hover {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+        }
+        
+        .solution-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .solution-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Animations */
+        .holographic {
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #fb5607);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: holographic 3s ease-in-out infinite;
+        }
+
+        @keyframes holographic {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Loading States */
+        .loading-placeholder {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        html.loaded .loading-placeholder {
+            opacity: 1;
+        }
+
+        /* Performance Optimization */
+        html {
+            visibility: hidden;
+        }
+
+        html.loaded {
+            visibility: visible;
+        }
+
+        #responseMessage {
+            color: green!important;
+            margin-bottom: 10px!important;
+        } 
+
+    </style>
+  
+    {{-- <!-- @vite(['resources/assets/css/app-frontend.scss']) --> --}}
+    @livewireStyles
+    @stack('after-styles')
+
+    <!-- Critical JavaScript (Inline) -->
+    <script>
+        // Prevent FOUC
+        document.documentElement.style.visibility = 'hidden';
+        
+        // Early theme detection
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+
+    <script language="JavaScript" src="https://dunsregistered.dnb.com" type="text/javascript"></script>
+    <!-- Toastr script --> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- Google tag (gtag.js) --> 
+     <script async src="https://www.googletagmanager.com/gtag/js?id=G-S8C9M4YHNR"></script> <script>   window.dataLayer = window.dataLayer || [];   function gtag(){dataLayer.push(arguments);}   gtag('js', new Date());   gtag('config', 'G-S8C9M4YHNR'); </script>
+
+
+   
+</head>
+
+<body class="bg-gray-100">
+    @include('frontend.includes.header')
+
+    <main>
+        @yield('content')
+    </main>
+
+    @include('frontend.includes.footer')
+    
+    @include('frontend.includes.contact-modal')
+
+
+    <!-- Core Scripts (Load Early) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.min.js" integrity="sha256-AlTido85uXPlSyyaZNsjJXeCs07eSv3r43kyCVc8ChI=" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha512-7Pi/otdlbbCR+LnW+F7PwFcSDJOuUJB3OxtEHbg4vSMvzvJjde4Po1v4BR9Gdc9aXNUNFVUY+SK51wWT8WF0Gg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    @if(!empty($seo->content_json['page_schema_type']))
+      {{$seo->content_json['page_schema_type'] ?? ''}}
+    @endif
+    <!-- Custom Scripts -->
+    <!-- <script src="{{ asset('js/main.js') }}"></script> -->
+    <!-- <script src="{{ asset('js/utils.js') }}"></script> -->
+    <script src="{{ asset('js/script.js') }}"></script>
+
+   {{-- <!-- @vite(['resources/assets/js/app-frontend.js']) --> --}}
+    @livewireScriptConfig
+    @stack('after-scripts')
+
+    <!-- Core Functionality Script -->
+    <script>
+        // jQuery UI Datepicker
+        $(function() {
+            $(".datepicker").datepicker({
+                dateFormat: "dd-mm-yy",
+                minDate: 0
+            });
+        });
+
+        // Counter Animation
+        function animateCounter(element, target, suffix = '') {
+            let current = 0;
+            const increment = target / 100;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                if (suffix === '%') {
+                    element.textContent = current.toFixed(1);
+                } else if (target >= 1000) {
+                    element.textContent = Math.floor(current).toLocaleString();
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, 20);
+        }
+
+        // Intersection Observer for counter animation
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counters = entry.target.querySelectorAll('.counter-number');
+                    counters.forEach(counter => {
+                        const target = parseInt(counter.dataset.target);
+                        const suffix = counter.nextElementSibling?.textContent || '';
+                        animateCounter(counter, target, suffix);
+                    });
+                    counterObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        // Progress bar animation
+        function animateProgressBars() {
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach((bar, index) => {
+                setTimeout(() => {
+                    bar.style.width = '100%';
+                }, index * 200);
+            });
+        }
+
+        // Progress Observer
+        const progressObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateProgressBars();
+                    progressObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.3 });
+
+        // Back to Top functionality
+        function initializeBackToTop() {
+            const backToTop = document.getElementById('top');
+            if (!backToTop) return;
+            
+            let isVisible = false;
+            
+            const toggleVisibility = () => {
+                const shouldShow = window.scrollY > 300;
+                
+                if (shouldShow && !isVisible) {
+                    backToTop.classList.add('visible');
+                    isVisible = true;
+                } else if (!shouldShow && isVisible) {
+                    backToTop.classList.remove('visible');
+                    isVisible = false;
+                }
+            };
+            
+            // Throttled scroll listener
+            let ticking = false;
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    requestAnimationFrame(() => {
+                        toggleVisibility();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            });
+            
+            // Smooth scroll to top
+            backToTop.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        // Enhanced Script Loader
+        class OptimizedScriptLoader {
+            constructor() {
+                this.loadedScripts = new Set();
+                this.loadingPromises = new Map();
+            }
+            
+            async loadScript(src, options = {}) {
+                if (this.loadedScripts.has(src)) return Promise.resolve();
+                if (this.loadingPromises.has(src)) return this.loadingPromises.get(src);
+                
+                const promise = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.async = options.async !== false;
+                    
+                    if (options.integrity) script.integrity = options.integrity;
+                    if (options.crossorigin) script.crossOrigin = options.crossorigin;
+                    
+                    script.onload = () => {
+                        this.loadedScripts.add(src);
+                        resolve();
+                    };
+                    
+                    script.onerror = () => {
+                        console.warn(`Failed to load script: ${src}`);
+                        reject(new Error(`Failed to load ${src}`));
+                    };
+                    
+                    document.head.appendChild(script);
+                });
+                
+                this.loadingPromises.set(src, promise);
+                return promise;
+            }
+        }
+
+        const scriptLoader = new OptimizedScriptLoader();
+
+        // Initialize everything when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize observers
+            const counterSection = document.querySelector('.counter-section');
+            if (counterSection) {
+                counterObserver.observe(counterSection);
+                progressObserver.observe(counterSection);
+            }
+
+            // Initialize back to top
+            initializeBackToTop();
+
+            // Initialize floating shapes
+            const shapes = document.querySelectorAll('.floating-shape');
+            shapes.forEach((shape, index) => {
+                shape.style.animationDelay = `${index * 0.5}s`;
+            });
+
+            // Show content to prevent FOUC
+            document.documentElement.classList.add('loaded');
+            document.documentElement.style.visibility = 'visible';
+
+            // Load D&B script after 2 seconds
+            setTimeout(loadDunsScript, 2000);
+        });
+
+        // Load non-critical scripts after page load
+        window.addEventListener('load', async () => {
+            try {
+                console.log('📦 Loading non-critical scripts...');
+                
+                // Load Owl Carousel
+                await scriptLoader.loadScript('https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js');
+                
+                // Load Swiper if needed
+                if (document.querySelector('.swiper, .swiper2, .swiper-container')) {
+                    await scriptLoader.loadScript('https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js');
+                    initializeSwipers();
+                }
+
+                // Load jQuery Validate if forms exist
+                if (document.querySelector('form[data-validate]')) {
+                    await scriptLoader.loadScript('https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.21.0/jquery.validate.min.js');
+                }
+
+                console.log('✅ All non-critical scripts loaded');
+                
+            } catch (error) {
+                console.warn('⚠️ Some non-critical scripts failed to load:', error);
+            }
+        });
+
+        // Initialize Swiper sliders
+        function initializeSwipers() {
+            if (typeof Swiper === 'undefined') return;
+
+            // Swiper2 initialization
+            if (document.querySelector('.swiper2')) {
+                new Swiper('.swiper2', {
+                    slidesPerView: 3,
+                    spaceBetween: 40,
+                    loop: true,
+                    autoplay: { delay: 3000, disableOnInteraction: false },
+                    pagination: { el: '.swiper-pagination', clickable: true },
+                    navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+                    breakpoints: {
+                        320: { slidesPerView: 1, spaceBetween: 20 },
+                        768: { slidesPerView: 2, spaceBetween: 30 },
+                        1024: { slidesPerView: 3, spaceBetween: 40 }
+                    }
+                });
+            }
+
+            // Main swiper container
+            if (document.querySelector('.swiper-container')) {
+                new Swiper('.swiper-container', {
+                    slidesPerView: 1,
+                    spaceBetween: 40,
+                    centeredSlides: true,
+                    autoHeight: true,
+                    loop: true,
+                    autoplay: { delay: 3000, disableOnInteraction: false }
+                });
+            }
+        }
+
+        // Error handling
+        window.addEventListener('error', (e) => {
+            console.warn('Non-critical error:', e.message);
+        });
+
+        // Performance monitoring
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if ('performance' in window) {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    if (perfData) {
+                        const loadTime = perfData.loadEventEnd - perfData.loadEventStart;
+                        console.log(`📊 Page load time: ${loadTime.toFixed(2)}ms`);
+                    }
+                }
+            }, 0);
+        });
+    </script>
+</body>
+
+</html>

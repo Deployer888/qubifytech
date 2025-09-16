@@ -1,0 +1,862 @@
+@extends('frontend.layouts.app')
+
+@section('title') Services - {{ config('app.name') }} @endsection
+
+@section('content')
+
+   
+
+    <style>
+        /* Global Styles & Theming */
+        :root {
+        --color-primary: #0055A4;
+        --color-accent: #1062AF;
+        --color-bg: #FFFFFF;
+        --color-alt-bg: #F4F7FA;
+        --text-primary: #1A1A1A;
+        --text-secondary: #666666;
+        --text-light: #8A8A8A;
+        --radius-sm: 0.5rem;
+        --radius-md: 1rem;
+        --radius-lg: 1.5rem;
+        --shadow-soft: 0 8px 24px rgba(0,0,0,0.1);
+        --shadow-hover: 0 12px 32px rgba(0,0,0,0.15);
+        --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        --font-size-xs: 0.875rem;
+        --font-size-sm: 1rem;
+        --font-size-md: 1.125rem;
+        --font-size-lg: 1.5rem;
+        --font-size-xl: 2rem;
+        --font-size-2xl: 2.5rem;
+        --font-size-3xl: 3rem;
+        --spacing-xs: 0.5rem;
+        --spacing-sm: 1rem;
+        --spacing-md: 1.5rem;
+        --spacing-lg: 2rem;
+        --spacing-xl: 3rem;
+        --spacing-2xl: 4rem;
+        --container-max-width: 1200px;
+        }
+
+        * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        }
+
+        body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
+        color: var(--text-primary);
+        background-color: var(--color-bg);
+        overflow-x: hidden;
+        }
+
+        .container {
+        max-width: var(--container-max-width);
+        margin: 0 auto;
+        padding: 0 var(--spacing-md);
+        }
+
+        @media (max-width: 768px) {
+        .container {
+            padding: 0 var(--spacing-sm);
+        }
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+        line-height: 1.2;
+        font-weight: 700;
+        color: var(--text-primary);
+        }
+
+        h1 {
+        font-size: var(--font-size-3xl);
+        font-weight: 800;
+        }
+
+        h2 {
+        font-size: var(--font-size-2xl);
+        }
+
+        h3 {
+        font-size: var(--font-size-xl);
+        }
+
+        @media (max-width: 768px) {
+        h1 {
+            font-size: var(--font-size-2xl);
+        }
+        
+        h2 {
+            font-size: var(--font-size-xl);
+        }
+        }
+
+        /* Buttons */
+        .btn {
+        display: inline-block;
+        padding: var(--spacing-sm) var(--spacing-lg);
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: var(--font-size-sm);
+        border: 2px solid transparent;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition);
+        text-align: center;
+        background: none;
+        }
+
+        .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transition: width 0.3s, height 0.3s;
+        transform: translate(-50%, -50%);
+        z-index: 0;
+        }
+
+        .btn:hover::before {
+        width: 300px;
+        height: 300px;
+        }
+
+        .btn > * {
+        position: relative;
+        z-index: 1;
+        }
+
+        .btn--primary {
+        background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+        color: white;
+        box-shadow: var(--shadow-soft);
+        }
+
+        .btn--primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hover);
+        }
+
+        .btn--secondary {
+        background: white;
+        color: var(--color-primary);
+        border: 2px solid var(--color-primary);
+        }
+
+        .btn--secondary:hover {
+        background: var(--color-primary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hover);
+        }
+
+        .btn--outline {
+        background: transparent;
+        color: var(--color-primary);
+        border: 2px solid var(--color-primary);
+        }
+
+        .btn--outline:hover {
+        background: var(--color-primary);
+        color: white;
+        }
+
+        /* Hero Section */
+        .hero {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+        color: white;
+        padding: var(--spacing-2xl) 0;
+        position: relative;
+        overflow: hidden;
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        }
+
+        .hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+        z-index: 1;
+        }
+
+        .hero__content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto;
+        }
+
+        .hero__title {
+        color: white;
+        margin-bottom: var(--spacing-md);
+        animation: fadeInUp 0.8s ease-out;
+        }
+
+        .hero__subtitle {
+        font-size: var(--font-size-md);
+        opacity: 0.9;
+        margin-bottom: var(--spacing-xl);
+        line-height: 1.7;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .hero__cta {
+        display: flex;
+        gap: var(--spacing-md);
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        @media (max-width: 768px) {
+        .hero {
+            padding: var(--spacing-xl) 0;
+            min-height: 60vh;
+        }
+        
+        .hero__cta {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .hero__cta .btn {
+            width: 100%;
+            max-width: 300px;
+        }
+        }
+
+        /* Services Section */
+        .services {
+        padding: var(--spacing-2xl) 0;
+        }
+
+        .services__header {
+        text-align: center;
+        margin-bottom: var(--spacing-2xl);
+        }
+
+        .services__title {
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-md);
+        position: relative;
+        display: inline-block;
+        }
+
+        .services__title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+        border-radius: 2px;
+        }
+
+        .services__subtitle {
+        font-size: var(--font-size-md);
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0 auto;
+        }
+
+        .service {
+        margin-bottom: var(--spacing-2xl);
+        padding: var(--spacing-xl) 0;
+        }
+
+        .service:nth-child(even) {
+        background-color: var(--color-alt-bg);
+        margin-left: -100vw;
+        margin-right: -100vw;
+        padding-left: 100vw;
+        padding-right: 100vw;
+        }
+
+        .service__content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-xl);
+        align-items: center;
+        max-width: var(--container-max-width);
+        margin: 0 auto;
+        padding: 0 var(--spacing-md);
+        }
+
+        .service:nth-child(even) .service__content {
+        grid-template-columns: 1fr 1fr;
+        }
+
+        .service__header {
+        margin-bottom: var(--spacing-lg);
+        }
+
+        .service__category {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+        color: white;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-sm);
+        font-size: var(--font-size-xs);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: var(--spacing-sm);
+        }
+
+        .service__text h2 {
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-sm);
+        position: relative;
+        }
+
+        .service__text h2::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+        border-radius: 2px;
+        }
+
+        .service__text p {
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-md);
+        line-height: 1.7;
+        }
+
+        .service__visual {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 300px;
+        background: linear-gradient(135deg, var(--color-primary)10, var(--color-accent)10);
+        border-radius: var(--radius-lg);
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition);
+        }
+
+        .service__visual:hover {
+        transform: scale(1.02);
+        box-shadow: var(--shadow-hover);
+        }
+
+        .service__visual img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: var(--radius-lg);
+        }
+
+        .service__icon {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 2;
+        }
+
+        .service__icon svg {
+        width: 60px;
+        height: 60px;
+        fill: white;
+        }
+
+        @media (max-width: 768px) {
+        .service__content {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-lg);
+            text-align: center;
+        }
+        
+        .service:nth-child(even) .service__content {
+            grid-template-columns: 1fr;
+        }
+        
+        .service__visual {
+            order: -1;
+            height: 200px;
+        }
+        
+        .service__icon {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .service__icon svg {
+            width: 40px;
+            height: 40px;
+        }
+        }
+
+        /* Why Qubify Section */
+        .why-qubify {
+        background: var(--color-alt-bg);
+        padding: var(--spacing-2xl) 0;
+        text-align: center;
+        position: relative;
+        }
+
+        .why-qubify__content {
+        max-width: 800px;
+        margin: 0 auto;
+        }
+
+        .why-qubify h2 {
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-lg);
+        position: relative;
+        display: inline-block;
+        }
+
+        .why-qubify h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+        border-radius: 2px;
+        }
+
+        .why-qubify p {
+        font-size: var(--font-size-md);
+        color: var(--text-secondary);
+        line-height: 1.8;
+        }
+
+        /* Industries Section */
+        .industries {
+        padding: var(--spacing-2xl) 0;
+        }
+
+        .industries h2 {
+        text-align: center;
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-xl);
+        }
+
+        .industries__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: var(--spacing-lg);
+        margin-top: var(--spacing-xl);
+        }
+
+        .industry-card {
+        background: white;
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-soft);
+        text-align: center;
+        transition: var(--transition);
+        border: 1px solid #f0f0f0;
+        }
+
+        .industry-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+        border-color: var(--color-primary);
+        }
+
+        .industry-card__icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+        border-radius: 50%;
+        margin: 0 auto var(--spacing-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        }
+
+        .industry-card__icon svg {
+        width: 30px;
+        height: 30px;
+        fill: white;
+        }
+
+        .industry-card h3 {
+        color: var(--color-primary);
+        font-size: var(--font-size-md);
+        margin-bottom: var(--spacing-sm);
+        }
+
+        /* CTA Section */
+        .cta-section {
+        background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+        color: white;
+        padding: var(--spacing-2xl) 0;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 0;
+        }
+
+        .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+        z-index: 1;
+        }
+
+        .cta-section__content {
+        position: relative;
+        z-index: 2;
+        }
+
+        .cta-section h2 {
+        color: white;
+        margin-bottom: var(--spacing-md);
+        }
+
+        .cta-section p {
+        font-size: var(--font-size-md);
+        margin-bottom: var(--spacing-lg);
+        opacity: 0.9;
+        }
+
+        .contact-info {
+        margin: var(--spacing-lg) 0;
+        font-size: var(--font-size-sm);
+        opacity: 0.9;
+        }
+
+        .contact-info a {
+        color: white;
+        text-decoration: none;
+        }
+
+        .contact-info a:hover {
+        text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        }
+
+        @keyframes float {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+        }
+
+        .floating {
+        animation: float 6s ease-in-out infinite;
+        }
+
+        /* Utility Classes */
+        .text-center {
+        text-align: center;
+        }
+
+        .mb-lg {
+        margin-bottom: var(--spacing-lg);
+        }
+
+        .mb-xl {
+        margin-bottom: var(--spacing-xl);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+        .industries__grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+        }
+
+        @media (max-width: 480px) {
+            .industries__grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero__subtitle {
+                font-size: var(--font-size-sm);
+            }
+        }
+
+        /* Focus and Accessibility */
+        .btn:focus,
+        .industry-card:focus {
+            outline: 2px solid var(--color-accent);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+
+    <!-- Hero Section -->
+    <section class="hero mt-3">
+        <div class="container">
+            <div class="hero__content">
+            <h1 class="hero__title">{{ $heroContent->content_json['title'] ?? '' }}</h1>
+            <p class="hero__subtitle">{{ $heroContent->content_json['subtitle'] ?? '' }}</p>
+            <div class="hero__cta">
+                <a href="#contact" class="btn btn--primary">{{ $heroContent->content_json['buttons'][0]['text'] }}</a>
+                <a href="mailto:sales@qubifytech.com" class="btn btn--secondary">{{ $heroContent->content_json['buttons'][1]['text'] }}</a>
+            </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Services Section -->
+    <section class="services">
+        <div class="container">
+            <div class="services__header">
+                <h2 class="services__title">{{ $servicesHeaderContent->content_json['title'] ?? '' }}</h2>
+                <p class="services__subtitle">{{ $servicesHeaderContent->content_json['subtitle'] ?? '' }}</p>
+            </div>
+        </div>
+
+        <!-- Web Development -->
+        <div class="service">
+            <div class="service__content">
+            <div class="service__text">
+                <div class="service__header">
+                    <span class="service__category">{{$webDevelopmentContent->content_json['category'] ?? ''}}</span>
+                    <h2>{{$webDevelopmentContent->content_json['title'] ?? ''}}</h2>
+                </div>
+                <p>{{$webDevelopmentContent->content_json['description'] ?? ''}}</p>
+                <p><strong>Key Features:</strong> {{$webDevelopmentContent->content_json['features'] ?? ''}}</p> 
+                <a href="{{ route('frontend.services.web-devvelopment') }}" class="btn btn--outline">{{$webDevelopmentContent->content_json['button']['text'] ?? ''}}</a>
+            </div>
+            <div class="service__visual floating">
+                <img src="{{asset($webDevelopmentContent->content_json['image_url'] ?? '')}}" alt="{{$webDevelopmentContent->content_json['image_alt'] ?? ''}}" />
+            </div>
+            </div>
+        </div>
+
+        <!-- Software Development -->
+        <div class="service">
+            <div class="service__content">
+            <div class="service__visual floating">
+                <img src="{{asset($softwareDevelopmentContent->content_json['image_url'] ?? '')}}" alt="{{$softwareDevelopmentContent->content_json['image_alt'] ?? ''}}" />
+            </div>
+            <div class="service__text">
+                <div class="service__header">
+                    <span class="service__category">{{$softwareDevelopmentContent->content_json['category'] ?? ''}}</span>
+                    <h2>{{$softwareDevelopmentContent->content_json['title'] ?? ''}}</h2>
+                </div>
+                <p>{{$softwareDevelopmentContent->content_json['description'] ?? ''}}</p>
+                <p><strong>Specialties:</strong> {{$softwareDevelopmentContent->content_json['features'] ?? ''}}</p>
+                <a href="{{ route('frontend.services.software-development') }}" class="btn btn--outline">{{$softwareDevelopmentContent->content_json['button']['text'] ?? ''}}</a>
+            </div>
+            </div>
+        </div>
+
+        <!-- Mobile App Development -->
+        <div class="service">
+            <div class="service__content">
+            <div class="service__text">
+                <div class="service__header">
+                    <span class="service__category">{{$mobileDevelopmentContent->content_json['category'] ?? ''}}</span>
+                    <h2>{{$mobileDevelopmentContent->content_json['title'] ?? ''}}</h2>
+                </div>
+                <p>{{$mobileDevelopmentContent->content_json['description'] ?? ''}}</p>
+                <p><strong>Platforms:</strong> {{$mobileDevelopmentContent->content_json['features'] ?? ''}}</p>
+                <a href="{{ route('frontend.services.mobile-app') }}" class="btn btn--outline">{{$mobileDevelopmentContent->content_json['button']['text'] ?? ''}}</a>
+            </div>
+            <div class="service__visual floating">
+                <img src="{{asset($mobileDevelopmentContent->content_json['image_url'] ?? '')}}" alt="{{$mobileDevelopmentContent->content_json['image_alt'] ?? ''}}" />
+            </div>
+            </div>
+        </div>
+
+        <!-- Web Application Development -->
+        <div class="service">
+            <div class="service__content">
+            <div class="service__visual floating">
+               <img src="{{asset($webAppDevelopmentContent->content_json['image_url'] ?? '')}}" alt="{{$webAppDevelopmentContent->content_json['image_alt'] ?? ''}}" />
+            </div>
+            <div class="service__text">
+                <div class="service__header">
+                    <span class="service__category">{{$webAppDevelopmentContent->content_json['category'] ?? ''}}</span>
+                    <h2>{{$webAppDevelopmentContent->content_json['title'] ?? ''}}</h2>
+                </div>
+                <p>{{$webAppDevelopmentContent->content_json['description'] ?? ''}}</p>
+                <p><strong>Solutions:</strong> {{$webAppDevelopmentContent->content_json['button']['text'] ?? ''}}</p>
+                <a href="{{ route('frontend.services.web-app') }}" class="btn btn--outline">{{$webAppDevelopmentContent->content_json['button']['text'] ?? ''}}</a>
+            </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Qubify Section -->
+    <section class="why-qubify">
+        <div class="container">
+            <div class="why-qubify__content">
+            <h2>{{$whyQubifyContent->content_json['title'] ?? ''}}</h2>
+            <p>{{$whyQubifyContent->content_json['description1'] ?? ''}}</p>
+            <br>
+            <p>{{$whyQubifyContent->content_json['description2'] ?? ''}}</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technologies Section -->
+    <section class="industries">
+        <div class="container">
+            <h2>{{$technologiesContent->content_json['title'] ?? ''}}</h2>
+            <p class="text-center" style="color: var(--text-secondary); font-size: var(--font-size-md); margin-bottom: var(--spacing-xl);">
+            {{$technologiesContent->content_json['subtitle'] ?? ''}}
+            </p>
+            <div class="industries__grid">
+            <div class="industry-card">
+                <div class="industry-card__icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                </div>
+                <h3>{{$technologiesContent->content_json['technologies'][0]['title'] ?? ''}}  </h3>
+                <p>{{$technologiesContent->content_json['technologies'][0]['description'] ?? ''}}</p>
+            </div>
+            <div class="industry-card">
+                <div class="industry-card__icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+                </svg>
+                </div>
+                 <h3>{{$technologiesContent->content_json['technologies'][1]['title'] ?? ''}}  </h3>
+                <p>{{$technologiesContent->content_json['technologies'][1]['description'] ?? ''}}</p>
+            </div>
+            <div class="industry-card">
+                <div class="industry-card__icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                </div>
+                 <h3>{{$technologiesContent->content_json['technologies'][2]['title'] ?? ''}}  </h3>
+                <p>{{$technologiesContent->content_json['technologies'][2]['description'] ?? ''}}</p>
+            </div>
+ 
+            <div class="industry-card">
+                <div class="industry-card__icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                </svg>
+                </div>
+                 <h3>{{$technologiesContent->content_json['technologies'][3]['title'] ?? ''}}  </h3>
+                <p>{{$technologiesContent->content_json['technologies'][3]['description'] ?? ''}}</p>
+            </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section" id="contact">
+        <div class="container">
+            <div class="cta-section__content">
+            <h2>{{ $ctaContent->content_json['title'] ?? '' }}</h2>
+            <p>{{ $ctaContent->content_json['description'] ?? 'Let\'s build something extraordinary together. Whether you\'re looking to create a new web application, mobile app, or enterprise software solution, Qubify has the expertise and execution power to bring your vision to life.' }}</p>
+            <div class="contact-info mb-lg">
+                <p>
+                <a href="mailto:{{ $ctaContent->content_json['contact']['email'] ?? 'sales@qubifytech.com' }}">{{ $ctaContent->content_json['contact']['email'] ?? 'sales@qubifytech.com' }}</a> | 
+                <a href="tel:{{ str_replace(' ', '', $ctaContent->content_json['contact']['phone'] ?? '+919915437999') }}">{{ $ctaContent->content_json['contact']['phone'] ?? '+91 99154 37999' }}</a>
+                </p>
+                <p><a href="https://{{ $ctaContent->content_json['contact']['website'] ?? 'www.qubifytech.com' }}" target="_blank">{{ $ctaContent->content_json['contact']['website'] ?? 'www.qubifytech.com' }}</a></p>
+            </div>
+            <a href="{{ $ctaContent->content_json['button']['url'] ?? 'mailto:sales@qubifytech.com' }}" class="btn btn--secondary">{{ $ctaContent->content_json['button']['text'] ?? 'Get Started Today' }}</a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Button ripple effect
+        document.querySelectorAll('.btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.classList.add('ripple');
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+            ripple.remove();
+            }, 600);
+        });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+            }
+        });
+        });
+
+        // Keyboard navigation support
+        document.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+            document.body.classList.add('keyboard-navigation');
+        }
+        });
+
+        document.addEventListener('mousedown', () => {
+        document.body.classList.remove('keyboard-navigation');
+        });
+    </script>
+
+@endsection

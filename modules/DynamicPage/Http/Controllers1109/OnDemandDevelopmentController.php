@@ -1,0 +1,979 @@
+<?php
+
+namespace Modules\DynamicPage\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Modules\DynamicPage\Entities\Page;
+use Modules\DynamicPage\Entities\PageType;
+use Modules\DynamicPage\Entities\DynamicContent;
+use Modules\DynamicPage\Entities\CustomSeo;
+
+class OnDemandDevelopmentController extends Controller
+{
+    public function index()
+    {
+        // Get or create the on demand development page
+        $page = $this->getOrCreateOnDemandDevelopmentPage();
+        $pageType = $this->getOrCreatePageType($page->id, 'ondemanddeliverypage');
+        
+        // Get existing content for all sections
+        $heroContent = $this->getSectionContent($page->id, $pageType->id, 'hero');
+        $introContent = $this->getSectionContent($page->id, $pageType->id, 'intro');
+        $coreFeaturesContent = $this->getSectionContent($page->id, $pageType->id, 'core_features');
+        $additionalFeaturesContent = $this->getSectionContent($page->id, $pageType->id, 'additional_features');
+        $useCasesContent = $this->getSectionContent($page->id, $pageType->id, 'use_cases');
+        $highlightsContent = $this->getSectionContent($page->id, $pageType->id, 'highlights');
+        $testimonialsContent = $this->getSectionContent($page->id, $pageType->id, 'testimonials');
+        $finalCtaContent = $this->getSectionContent($page->id, $pageType->id, 'final_cta');
+        $seo_data = CustomSeo::where('page_id', $pageType->id)->first();
+        return view('dynamicpage::solutionspage.onDemandDevelopment', compact(
+            'page', 
+            'pageType', 
+            'seo_data', 
+            'heroContent', 
+            'introContent', 
+            'coreFeaturesContent',
+            'additionalFeaturesContent',
+            'useCasesContent',
+            'highlightsContent',
+            'testimonialsContent',
+            'finalCtaContent'
+        ));
+    }
+
+    /**
+     * Save Hero Section
+     */
+    public function saveHeroSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'hero_title' => 'required|string|max:500',
+            'hero_subtitle' => 'required|string|max:1000',
+            'hero_feature1' => 'required|string|max:255',
+            'hero_feature2' => 'required|string|max:255',
+            'hero_feature3' => 'required|string|max:255',
+            'hero_button1_text' => 'required|string|max:255',
+            'hero_button2_text' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateOnDemandDevelopmentPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'ondemanddeliverypage');
+
+            // Prepare content data
+            $contentData = [
+                'title' => $request->hero_title,
+                'subtitle' => $request->hero_subtitle,
+                'features' => [
+                    $request->hero_feature1,
+                    $request->hero_feature2,
+                    $request->hero_feature3
+                ],
+                'buttons' => [
+                    [
+                        'text' => $request->hero_button1_text,
+                        'action' => 'contact'
+                    ],
+                    [
+                        'text' => $request->hero_button2_text,
+                        'action' => 'modal'
+                    ]
+                ]
+            ];
+
+            // Save or update hero section
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'hero'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 1,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Hero section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving hero section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save Intro Section
+     */
+    public function saveIntroSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'intro_title' => 'required|string|max:500',
+            'intro_description' => 'required|string|max:2000',
+            'intro_subtitle' => 'required|string|max:500',
+            'feature1_title' => 'required|string|max:255',
+            'feature1_description' => 'required|string|max:500',
+            'feature2_title' => 'required|string|max:255',
+            'feature2_description' => 'required|string|max:500',
+            'feature3_title' => 'required|string|max:255',
+            'feature3_description' => 'required|string|max:500',
+            'feature4_title' => 'required|string|max:255',
+            'feature4_description' => 'required|string|max:500'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateOnDemandDevelopmentPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'ondemanddeliverypage');
+
+            $contentData = [
+                'title' => $request->intro_title,
+                'description' => $request->intro_description,
+                'subtitle' => $request->intro_subtitle,
+                'features' => [
+                    [
+                        'title' => $request->feature1_title,
+                        'description' => $request->feature1_description
+                    ],
+                    [
+                        'title' => $request->feature2_title,
+                        'description' => $request->feature2_description
+                    ],
+                    [
+                        'title' => $request->feature3_title,
+                        'description' => $request->feature3_description
+                    ],
+                    [
+                        'title' => $request->feature4_title,
+                        'description' => $request->feature4_description
+                    ]
+                ]
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'intro'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 2,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Intro section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving intro section: ' . $e->getMessage()
+            ], 500);
+        }
+    }    
+/**
+     * Save Core Features Section
+     */
+    public function saveCoreFeaturesSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'core_title' => 'required|string|max:500',
+            'core_subtitle' => 'required|string|max:500',
+            // Feature 1 - Real-Time Tracking
+            'feature1_title' => 'required|string|max:255',
+            'feature1_subtitle' => 'required|string|max:255',
+            'feature1_description' => 'required|string|max:1000',
+            'feature1_benefit1' => 'required|string|max:255',
+            'feature1_benefit2' => 'required|string|max:255',
+            'feature1_benefit3' => 'required|string|max:255',
+            'feature1_stat1_label' => 'required|string|max:255',
+            'feature1_stat1_value' => 'required|string|max:255',
+            'feature1_stat2_label' => 'required|string|max:255',
+            'feature1_stat2_value' => 'required|string|max:255',
+            'feature1_stat3_label' => 'required|string|max:255',
+            'feature1_stat3_value' => 'required|string|max:255',
+            // Feature 2 - Auto Dispatch
+            'feature2_title' => 'required|string|max:255',
+            'feature2_subtitle' => 'required|string|max:255',
+            'feature2_description' => 'required|string|max:1000',
+            'feature2_benefit1' => 'required|string|max:255',
+            'feature2_benefit2' => 'required|string|max:255',
+            'feature2_benefit3' => 'required|string|max:255',
+            'feature2_stat1_label' => 'required|string|max:255',
+            'feature2_stat1_value' => 'required|string|max:255',
+            'feature2_stat2_label' => 'required|string|max:255',
+            'feature2_stat2_value' => 'required|string|max:255',
+            'feature2_stat3_label' => 'required|string|max:255',
+            'feature2_stat3_value' => 'required|string|max:255',
+            // Feature 3 - Route Optimization
+            'feature3_title' => 'required|string|max:255',
+            'feature3_subtitle' => 'required|string|max:255',
+            'feature3_description' => 'required|string|max:1000',
+            'feature3_benefit1' => 'required|string|max:255',
+            'feature3_benefit2' => 'required|string|max:255',
+            'feature3_benefit3' => 'required|string|max:255',
+            'feature3_stat1_label' => 'required|string|max:255',
+            'feature3_stat1_value' => 'required|string|max:255',
+            'feature3_stat2_label' => 'required|string|max:255',
+            'feature3_stat2_value' => 'required|string|max:255',
+            'feature3_stat3_label' => 'required|string|max:255',
+            'feature3_stat3_value' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateOnDemandDevelopmentPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'ondemanddeliverypage');
+
+            $contentData = [
+                'title' => $request->core_title,
+                'subtitle' => $request->core_subtitle,
+                'features' => [
+                    [
+                        'title' => $request->feature1_title,
+                        'subtitle' => $request->feature1_subtitle,
+                        'description' => $request->feature1_description,
+                        'benefits' => [
+                            $request->feature1_benefit1,
+                            $request->feature1_benefit2,
+                            $request->feature1_benefit3
+                        ],
+                        'stats' => [
+                            ['label' => $request->feature1_stat1_label, 'value' => $request->feature1_stat1_value],
+                            ['label' => $request->feature1_stat2_label, 'value' => $request->feature1_stat2_value],
+                            ['label' => $request->feature1_stat3_label, 'value' => $request->feature1_stat3_value]
+                        ]
+                    ],
+                    [
+                        'title' => $request->feature2_title,
+                        'subtitle' => $request->feature2_subtitle,
+                        'description' => $request->feature2_description,
+                        'benefits' => [
+                            $request->feature2_benefit1,
+                            $request->feature2_benefit2,
+                            $request->feature2_benefit3
+                        ],
+                        'stats' => [
+                            ['label' => $request->feature2_stat1_label, 'value' => $request->feature2_stat1_value],
+                            ['label' => $request->feature2_stat2_label, 'value' => $request->feature2_stat2_value],
+                            ['label' => $request->feature2_stat3_label, 'value' => $request->feature2_stat3_value]
+                        ]
+                    ],
+                    [
+                        'title' => $request->feature3_title,
+                        'subtitle' => $request->feature3_subtitle,
+                        'description' => $request->feature3_description,
+                        'benefits' => [
+                            $request->feature3_benefit1,
+                            $request->feature3_benefit2,
+                            $request->feature3_benefit3
+                        ],
+                        'stats' => [
+                            ['label' => $request->feature3_stat1_label, 'value' => $request->feature3_stat1_value],
+                            ['label' => $request->feature3_stat2_label, 'value' => $request->feature3_stat2_value],
+                            ['label' => $request->feature3_stat3_label, 'value' => $request->feature3_stat3_value]
+                        ]
+                    ]
+                ]
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'core_features'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 3,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Core Features section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving Core Features section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save Additional Features Section
+     */
+    public function saveAdditionalFeaturesSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'additional_title' => 'required|string|max:500',
+            // 6 additional features
+            'feature1_title' => 'required|string|max:255',
+            'feature1_subtitle' => 'required|string|max:255',
+            'feature1_description' => 'required|string|max:500',
+            'feature2_title' => 'required|string|max:255',
+            'feature2_subtitle' => 'required|string|max:255',
+            'feature2_description' => 'required|string|max:500',
+            'feature3_title' => 'required|string|max:255',
+            'feature3_subtitle' => 'required|string|max:255',
+            'feature3_description' => 'required|string|max:500',
+            'feature4_title' => 'required|string|max:255',
+            'feature4_subtitle' => 'required|string|max:255',
+            'feature4_description' => 'required|string|max:500',
+            'feature5_title' => 'required|string|max:255',            
+            'feature5_subtitle' => 'required|string|max:255',
+            'feature5_description' => 'required|string|max:500',
+            'feature6_title' => 'required|string|max:255',
+            'feature6_subtitle' => 'required|string|max:255',
+            'feature6_description' => 'required|string|max:500',
+            // Advanced Features
+            'advanced_feature1_title' => 'required|string|max:255',
+            'advanced_feature1_subtitle' => 'required|string|max:255',
+            'advanced_feature1_description' => 'required|string|max:500',
+            'advanced_feature2_title' => 'required|string|max:255',
+            'advanced_feature2_subtitle' => 'required|string|max:255',
+            'advanced_feature2_description' => 'required|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateOnDemandDevelopmentPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'ondemanddeliverypage');
+
+            $contentData = [
+                'title' => $request->additional_title,
+                'features' => [
+                    [
+                        'title' => $request->feature1_title,
+                        'subtitle' => $request->feature1_subtitle,
+                        'description' => $request->feature1_description
+                    ],
+                    [
+                        'title' => $request->feature2_title,
+                        'subtitle' => $request->feature2_subtitle,
+                        'description' => $request->feature2_description
+                    ],
+                    [
+                        'title' => $request->feature3_title,
+                        'subtitle' => $request->feature3_subtitle,
+                        'description' => $request->feature3_description
+                    ],
+                    [
+                        'title' => $request->feature4_title,
+                        'subtitle' => $request->feature4_subtitle,
+                        'description' => $request->feature4_description
+                    ],
+                    [
+                        'title' => $request->feature5_title,
+                        'subtitle' => $request->feature5_subtitle,
+                        'description' => $request->feature5_description
+                    ],
+                    [
+                        'title' => $request->feature6_title,
+                        'subtitle' => $request->feature6_subtitle,
+                        'description' => $request->feature6_description
+                    ]
+                ],
+                'advanced_features' => [
+                    [
+                        'title' => $request->advanced_feature1_title,
+                        'subtitle' => $request->advanced_feature1_subtitle,
+                        'description' => $request->advanced_feature1_description
+                    ],
+                    [
+                        'title' => $request->advanced_feature2_title,
+                        'subtitle' => $request->advanced_feature2_subtitle,
+                        'description' => $request->advanced_feature2_description
+                    ]
+                ]
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'additional_features'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 4,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Additional Features section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving Additional Features section: ' . $e->getMessage()
+            ], 500);
+        }
+    }  
+  /**
+     * Save Use Cases Section
+     */
+    public function saveUseCasesSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'use_cases_title' => 'required|string|max:500',
+            'use_cases_subtitle' => 'required|string|max:500',
+            // 8 use cases
+            'case1_title' => 'required|string|max:255',
+            'case1_description' => 'required|string|max:500',
+            'case2_title' => 'required|string|max:255',
+            'case2_description' => 'required|string|max:500',
+            'case3_title' => 'required|string|max:255',
+            'case3_description' => 'required|string|max:500',
+            'case4_title' => 'required|string|max:255',
+            'case4_description' => 'required|string|max:500',
+            'case5_title' => 'required|string|max:255',
+            'case5_description' => 'required|string|max:500',
+            'case6_title' => 'required|string|max:255',
+            'case6_description' => 'required|string|max:500',
+            'case7_title' => 'required|string|max:255',
+            'case7_description' => 'required|string|max:500',
+            'case8_title' => 'required|string|max:255',
+            'case8_description' => 'required|string|max:500'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateOnDemandDevelopmentPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'ondemanddeliverypage');
+
+            $contentData = [
+                'title' => $request->use_cases_title,
+                'subtitle' => $request->use_cases_subtitle,
+                'cases' => [
+                    [
+                        'title' => $request->case1_title,
+                        'description' => $request->case1_description
+                    ],
+                    [
+                        'title' => $request->case2_title,
+                        'description' => $request->case2_description
+                    ],
+                    [
+                        'title' => $request->case3_title,
+                        'description' => $request->case3_description
+                    ],
+                    [
+                        'title' => $request->case4_title,
+                        'description' => $request->case4_description
+                    ],
+                    [
+                        'title' => $request->case5_title,
+                        'description' => $request->case5_description
+                    ],
+                    [
+                        'title' => $request->case6_title,
+                        'description' => $request->case6_description
+                    ],
+                    [
+                        'title' => $request->case7_title,
+                        'description' => $request->case7_description
+                    ],
+                    [
+                        'title' => $request->case8_title,
+                        'description' => $request->case8_description
+                    ]
+                ]
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'use_cases'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 5,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Use Cases section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving Use Cases section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save Highlights Section
+     */
+    public function saveHighlightsSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'highlights_title' => 'required|string|max:500',
+            // 8 highlights
+            'highlight1_title' => 'required|string|max:255',
+            'highlight1_description' => 'required|string|max:500',
+            'highlight2_title' => 'required|string|max:255',
+            'highlight2_description' => 'required|string|max:500',
+            'highlight3_title' => 'required|string|max:255',
+            'highlight3_description' => 'required|string|max:500',
+            'highlight4_title' => 'required|string|max:255',
+            'highlight4_description' => 'required|string|max:500',
+            'highlight5_title' => 'required|string|max:255',
+            'highlight5_description' => 'required|string|max:500',
+            'highlight6_title' => 'required|string|max:255',
+            'highlight6_description' => 'required|string|max:500',
+            'highlight7_title' => 'required|string|max:255',
+            'highlight7_description' => 'required|string|max:500',
+            'highlight8_title' => 'required|string|max:255',
+            'highlight8_description' => 'required|string|max:500'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateOnDemandDevelopmentPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'ondemanddeliverypage');
+
+            $contentData = [
+                'title' => $request->highlights_title,
+                'highlights' => [
+                    [
+                        'title' => $request->highlight1_title,
+                        'description' => $request->highlight1_description
+                    ],
+                    [
+                        'title' => $request->highlight2_title,
+                        'description' => $request->highlight2_description
+                    ],
+                    [
+                        'title' => $request->highlight3_title,
+                        'description' => $request->highlight3_description
+                    ],
+                    [
+                        'title' => $request->highlight4_title,
+                        'description' => $request->highlight4_description
+                    ],
+                    [
+                        'title' => $request->highlight5_title,
+                        'description' => $request->highlight5_description
+                    ],
+                    [
+                        'title' => $request->highlight6_title,
+                        'description' => $request->highlight6_description
+                    ],
+                    [
+                        'title' => $request->highlight7_title,
+                        'description' => $request->highlight7_description
+                    ],
+                    [
+                        'title' => $request->highlight8_title,
+                        'description' => $request->highlight8_description
+                    ]
+                ]
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'highlights'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 6,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Highlights section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving Highlights section: ' . $e->getMessage()
+            ], 500);
+        }
+    }    /**
+
+     * Save Testimonials Section
+     */
+    public function saveTestimonialsSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'testimonials_title' => 'required|string|max:500',
+            // 3 testimonials
+            'testimonial1_name' => 'required|string|max:255',
+            'testimonial1_position' => 'required|string|max:255',
+            'testimonial1_company' => 'required|string|max:255',
+            'testimonial1_content' => 'required|string|max:1000',
+            'testimonial1_rating' => 'required|integer|min:1|max:5',
+            'testimonial2_name' => 'required|string|max:255',
+            'testimonial2_position' => 'required|string|max:255',
+            'testimonial2_company' => 'required|string|max:255',
+            'testimonial2_content' => 'required|string|max:1000',
+            'testimonial2_rating' => 'required|integer|min:1|max:5',
+            'testimonial3_name' => 'required|string|max:255',
+            'testimonial3_position' => 'required|string|max:255',
+            'testimonial3_company' => 'required|string|max:255',
+            'testimonial3_content' => 'required|string|max:1000',
+            'testimonial3_rating' => 'required|integer|min:1|max:5'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateOnDemandDevelopmentPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'ondemanddeliverypage');
+
+            $contentData = [
+                'title' => $request->testimonials_title,
+                'testimonials' => [
+                    [
+                        'name' => $request->testimonial1_name,
+                        'position' => $request->testimonial1_position,
+                        'company' => $request->testimonial1_company,
+                        'content' => $request->testimonial1_content,
+                        'rating' => $request->testimonial1_rating,
+                        'color' => 'blue'
+                    ],
+                    [
+                        'name' => $request->testimonial2_name,
+                        'position' => $request->testimonial2_position,
+                        'company' => $request->testimonial2_company,
+                        'content' => $request->testimonial2_content,
+                        'rating' => $request->testimonial2_rating,
+                        'color' => 'green'
+                    ],
+                    [
+                        'name' => $request->testimonial3_name,
+                        'position' => $request->testimonial3_position,
+                        'company' => $request->testimonial3_company,
+                        'content' => $request->testimonial3_content,
+                        'rating' => $request->testimonial3_rating,
+                        'color' => 'purple'
+                    ]
+                ]
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'testimonials'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 7,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Testimonials section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving Testimonials section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save Final CTA Section
+     */
+    public function saveFinalCtaSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'cta_title' => 'required|string|max:500',
+            'cta_description' => 'required|string|max:1000',
+            'cta_feature1' => 'required|string|max:255',
+            'cta_feature2' => 'required|string|max:255',
+            'cta_feature3' => 'required|string|max:255',
+            'cta_feature4' => 'required|string|max:255',
+            'cta_button1_text' => 'required|string|max:255',
+            'cta_button1_url' => 'required|string|max:255',
+            'cta_button2_text' => 'required|string|max:255',
+            'cta_button2_url' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $page = $this->getOrCreateOnDemandDevelopmentPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'ondemanddeliverypage');
+
+            $contentData = [
+                'title' => $request->cta_title,
+                'description' => $request->cta_description,
+                'features' => [
+                    $request->cta_feature1,
+                    $request->cta_feature2,
+                    $request->cta_feature3,
+                    $request->cta_feature4
+                ],
+                'buttons' => [
+                    [
+                        'text' => $request->cta_button1_text,
+                        'url' => $request->cta_button1_url
+                    ],
+                    [
+                        'text' => $request->cta_button2_text,
+                        'url' => $request->cta_button2_url
+                    ]
+                ]
+            ];
+
+            DynamicContent::updateOrCreate(
+                [
+                    'page_id' => $page->id,
+                    'page_type_id' => $pageType->id,
+                    'section_name' => 'final_cta'
+                ],
+                [
+                    'content_json' => $contentData,
+                    'order_by' => 8,
+                    'is_active' => $request->boolean('is_active', true)
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Final CTA section saved successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving Final CTA section: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle section active status
+     */
+    public function toggleSection(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'section_name' => 'required|string',
+            'is_active' => 'required|boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $page = $this->getOrCreateOnDemandDevelopmentPage();
+            $pageType = $this->getOrCreatePageType($page->id, 'ondemanddeliverypage');
+
+            $content = DynamicContent::where('page_id', $page->id)
+                ->where('page_type_id', $pageType->id)
+                ->where('section_name', $request->section_name)
+                ->first();
+
+            if ($content) {
+                $content->is_active = $request->is_active;
+                $content->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Section status updated successfully!'
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Section not found'
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating section status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get or create the on demand development page
+     */
+    private function getOrCreateOnDemandDevelopmentPage()
+    {
+        return Page::firstOrCreate(
+            ['name' => 'solutionpages'],
+            [
+             'name' => 'solutionpages'
+            ]
+        );
+    }
+
+    /**
+     * Get or create page type
+     */
+    private function getOrCreatePageType($pageId, $typeName)
+    {
+        return PageType::firstOrCreate(
+            [
+                'page_id' => $pageId,
+                'type' => $typeName
+            ]
+        );
+    }
+
+    /**
+     * Get section content
+     */
+    // private function getSectionContent($pageId, $sectionName)
+    // {
+    //     $pageType = PageType::where('page_id', $pageId)
+    //         ->where('type', 'on-demand-development')
+    //         ->first();
+
+    //     if (!$pageType) {
+    //         return null;
+    //     }
+
+    //     return DynamicContent::where('page_id', $pageId)
+    //         ->where('page_type_id', $pageType->id)
+    //         ->where('section_name', $sectionName)
+    //         ->first();
+    // }
+
+    private function getSectionContent($pageId, $pageTypeId, $sectionName)
+    {
+        return DynamicContent::where('page_id', $pageId)
+        ->where('page_type_id',$pageTypeId)
+        ->where('section_name', $sectionName)
+        ->first();
+    }
+}

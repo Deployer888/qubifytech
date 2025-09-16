@@ -1,0 +1,234 @@
+@extends('frontend.layouts.app')
+
+@section('title') Contact - {{ config('app.name') }} @endsection
+
+@section('content')
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ asset('css/contact.css') }}">
+
+    @php
+        // Get the contact page and its dynamic content
+        $contactPage = \Modules\DynamicPage\Entities\Page::where('name', 'contactpage')->first();
+        $heroSection = $contactPage ? $contactPage->getDynamicContentBySection('hero') : null;
+        $heroContent = $heroSection ? $heroSection->content_json : [];
+    @endphp
+
+    <!-- Hero Section -->
+    <section class="hero position-relative d-flex align-items-center justify-content-center" role="banner">
+        <div class="hero__overlay position-absolute w-100 h-100"></div>
+        <div class="hero__particles position-absolute w-100 h-100">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+        <div class="container position-relative z-2">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-10">
+                    <h1 class="hero__title text-white mb-4">{{ $heroContent['title'] ?? "Let's Connect and Collaborate" }}</h1>
+                    <p class="hero__subtitle text-white-50 fs-5 mb-5">{{ $heroContent['subtitle'] ?? "Have questions or need a demo? We're here to help you and support your journey every step of the way." }}</p>
+                    @if(!isset($heroContent['cta_button']) || ($heroContent['cta_button']['enabled'] ?? true))
+                    <div class="hero__cta">
+                        <a href="{{ $heroContent['cta_button']['url'] ?? '#contact' }}" class="hero__button btn">
+                            <span>{{ $heroContent['cta_button']['text'] ?? 'Start Your Journey' }}</span>
+                            <i class="fas fa-arrow-down ms-2" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @php
+        // Get contact features section
+        $featuresSection = $contactPage ? $contactPage->getDynamicContentBySection('features') : null;
+        $featuresContent = $featuresSection ? $featuresSection->content_json : [];
+    @endphp
+
+    <!-- Contact Section -->
+    <section class="contact py-5" id="contact">
+        <div class="contact__background-elements position-absolute w-100 h-100">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+        </div>
+        
+        <div class="container py-4 position-relative z-1">
+            <!-- Contact Intro -->
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-10 text-center">
+                    <div class="section-badge d-inline-flex align-items-center mb-4">
+                        <i class="fas fa-headset me-2" aria-hidden="true"></i>
+                        <span>{{ $featuresContent['badge']['text'] ?? 'Contact Us' }}</span>
+                    </div>
+                    <h2 class="contact__heading mb-5">{{ $featuresContent['title'] ?? 'Start Your Smart Conversation with Qubify' }}</h2>
+                    
+                    <div class="row g-4 contact__features">
+                        @if(isset($featuresContent['features']) && is_array($featuresContent['features']))
+                            @foreach($featuresContent['features'] as $feature)
+                            <div class="col-md-6 col-lg-3">
+                                <div class="feature-card card h-100 text-center">
+                                    <div class="card-body d-flex flex-column align-items-center">
+                                        <div class="feature-icon mb-3">
+                                            <i class="{{ $feature['icon'] ?? 'fas fa-star' }}" aria-hidden="true"></i>
+                                        </div>
+                                        <h3 class="h6 mb-2">{{ $feature['title'] ?? '' }}</h3>
+                                        <p class="text-muted mb-0 small">{{ $feature['description'] ?? '' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        @else
+                            {{-- Default features if no dynamic content --}}
+                            <div class="col-md-6 col-lg-3">
+                                <div class="feature-card card h-100 text-center">
+                                    <div class="card-body d-flex flex-column align-items-center">
+                                        <div class="feature-icon mb-3">
+                                            <i class="fas fa-comment-dots" aria-hidden="true"></i>
+                                        </div>
+                                        <h3 class="h6 mb-2">Instant Support</h3>
+                                        <p class="text-muted mb-0 small">Got a question? We're just a message away to assist you.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 col-lg-3">
+                                <div class="feature-card card h-100 text-center">
+                                    <div class="card-body d-flex flex-column align-items-center">
+                                        <div class="feature-icon mb-3">
+                                            <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                                        </div>
+                                        <h3 class="h6 mb-2">Free Demo</h3>
+                                        <p class="text-muted mb-0 small">Book your free demo by Qubify today.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 col-lg-3">
+                                <div class="feature-card card h-100 text-center">
+                                    <div class="card-body d-flex flex-column align-items-center">
+                                        <div class="feature-icon mb-3">
+                                            <i class="fas fa-handshake" aria-hidden="true"></i>
+                                        </div>
+                                        <h3 class="h6 mb-2">Consultation</h3>
+                                        <p class="text-muted mb-0 small">Let's talk about simplifying your processes.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 col-lg-3">
+                                <div class="feature-card card h-100 text-center">
+                                    <div class="card-body d-flex flex-column align-items-center">
+                                        <div class="feature-icon mb-3">
+                                            <i class="fas fa-lightbulb" aria-hidden="true"></i>
+                                        </div>
+                                        <h3 class="h6 mb-2">Smart Solutions</h3>
+                                        <p class="text-muted mb-0 small">Start real conversations and smart solutions.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            @php
+                // Get contact form section
+                $formSection = $contactPage ? $contactPage->getDynamicContentBySection('form') : null;
+                $formContent = $formSection ? $formSection->content_json : [];
+            @endphp
+
+            <!-- Contact Content -->
+            <div class="row g-5 align-items-start">
+                <!-- Contact Form -->
+                <div class="col-lg-7">
+                    <div class="contact__form-wrapper card">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="form__header text-center mb-5">
+                                <div class="form__icon mx-auto mb-3">
+                                    <i class="{{ $formContent['form_icon'] ?? 'fas fa-paper-plane' }}" aria-hidden="true"></i>
+                                </div>
+                                <h3 class="contact__form-title mb-3">{{ $formContent['title'] ?? 'Submit Your Request / Start the Conversation' }}</h3>
+                                <p class="form__subtitle text-muted mb-0">{{ $formContent['subtitle'] ?? "We'll get back to you within 24 hours" }}</p>
+                            </div>
+
+                            @include('frontend.includes.contact-form')
+                            
+                            <div class="form__footer mt-4 pt-4 border-top">
+                                <div class="trust-indicators d-flex justify-content-center gap-4 flex-wrap">
+                                @if(isset($formContent['trust_indicators']) && is_array($formContent['trust_indicators']))
+                                    @foreach($formContent['trust_indicators'] as $indicator)
+                                        <div class="trust-item d-flex align-items-center">
+                                            <i class="{{ $indicator['icon'] ?? 'fas fa-check' }} text-success me-2"></i>
+                                            <span class="small">{{ $indicator['text'] ?? '' }}</span>
+                                        </div>
+                                    @endforeach
+                                @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @php
+                    // Get contact info section
+                    $infoSection = $contactPage ? $contactPage->getDynamicContentBySection('office') : null;
+                    $infoContent = $infoSection ? $infoSection->content_json : [];
+                @endphp
+
+                <!-- Contact Info & Map -->
+                <div class="col-lg-5">
+                    <div class="contact__info-wrapper">
+                        
+                        <!-- Contact Details -->
+                        <div class="contact__details card">
+                            <div class="card-body p-4">
+                                <div class="details__header d-flex align-items-center mb-4">
+                                    <div class="details__icon me-3">
+                                        <i class="{{ $infoContent['header_icon'] ?? 'fas fa-building' }}" aria-hidden="true"></i>
+                                    </div>
+                                    <h3 class="contact__details-title mb-0">{{ $infoContent['title'] ?? 'Our Office' }}</h3>
+                                </div>
+                                
+                                @if(isset($infoContent['details']) && is_array($infoContent['details']))
+                                    @foreach($infoContent['details'] as $detail)
+                                        <div class="contact__detail d-flex align-items-start mb-3">
+                                            <div class="detail__icon me-3 flex-shrink-0">
+                                                <i class="{{ $detail['icon'] ?? 'fas fa-info' }}" aria-hidden="true"></i>
+                                            </div>
+                                            <div class="detail__content">
+                                                <h4 class="h6 mb-2">{{ $detail['title'] ?? '' }}</h4>
+
+                                                {{-- Email --}}
+                                                @if(strtolower($detail['title']) === 'email')
+                                                    <a href="mailto:{{ $detail['content'] ?? '' }}" class="text-decoration-none">
+                                                        {{ $detail['content'] ?? '' }}
+                                                    </a>
+
+                                                {{-- Phone --}}
+                                                @elseif(strtolower($detail['title']) === 'phone')
+                                                    <a href="tel:{{ $detail['content'] ?? '' }}" class="text-decoration-none">
+                                                        {{ $detail['content'] ?? '' }}
+                                                    </a>
+
+                                                {{-- Default text (Address / Hours) --}}
+                                                @else
+                                                    <p class="mb-0 text-muted">{!! nl2br(e($detail['content'] ?? '')) !!}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+ 
+@endsection
