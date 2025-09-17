@@ -440,7 +440,7 @@
             document.documentElement.style.visibility = 'visible';
 
             // Load D&B script after 2 seconds
-            setTimeout(loadDunsScript, 2000);
+            // setTimeout(loadDunsScript, 2000);
         });
 
         // Load non-critical scripts after page load

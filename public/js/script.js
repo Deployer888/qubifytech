@@ -430,10 +430,10 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================
 // ERROR HANDLING & FALLBACKS
 // ============================================
-window.addEventListener('error', function(e) {
-    console.warn('VMS: Non-critical error handled:', e.error);
-    // Graceful degradation - continue without advanced animations if needed
-});
+// window.addEventListener('error', function(e) {
+//     console.warn('VMS: Non-critical error handled:', e.error);
+//     // Graceful degradation - continue without advanced animations if needed
+// });
 
 // ============================================
 // EXPORT FOR MODULAR USAGE (IF NEEDED)
@@ -451,39 +451,39 @@ if (typeof module !== 'undefined' && module.exports) {
 // ============================================
 // PREMIUM PAGE LOADING ANIMATION
 // ============================================
-window.addEventListener('load', function() {
-    setTimeout(function() {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        loadingOverlay.classList.add('fade-out');
+// window.addEventListener('load', function() {
+//     setTimeout(function() {
+//         const loadingOverlay = document.getElementById('loadingOverlay');
+//         loadingOverlay.classList.add('fade-out');
         
-        // Initialize premium animations after loading
-        setTimeout(() => {
-            initPremiumAnimations();
-            initScrollAnimations();
-        }, 300);
-    }, 1500);
-});
+//         // Initialize premium animations after loading
+//         setTimeout(() => {
+//             initPremiumAnimations();
+//             initScrollAnimations();
+//         }, 300);
+//     }, 1500);
+// });
 
 // ============================================
 // PREMIUM NAVBAR SCROLL EFFECTS
 // ============================================
-window.addEventListener('scroll', function() {
-    const navbar = document.getElementById('mainNavbar');
-    const scrollY = window.scrollY;
+// window.addEventListener('scroll', function() {
+//     const navbar = document.getElementById('mainNavbar');
+//     const scrollY = window.scrollY;
     
-    if (scrollY > 100) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
+//     if (scrollY > 100) {
+//         navbar.classList.add('scrolled');
+//     } else {
+//         navbar.classList.remove('scrolled');
+//     }
     
-    // Parallax effect for floating elements
-    const floatingElements = document.querySelectorAll('.floating-security-badge');
-    floatingElements.forEach(element => {
-        const speed = scrollY * 0.2;
-        element.style.transform = `translateY(${speed}px) rotate(${speed * 0.1}deg)`;
-    });
-});
+//     // Parallax effect for floating elements
+//     const floatingElements = document.querySelectorAll('.floating-security-badge');
+//     floatingElements.forEach(element => {
+//         const speed = scrollY * 0.2;
+//         element.style.transform = `translateY(${speed}px) rotate(${speed * 0.1}deg)`;
+//     });
+// });
 
 // ============================================
 // OFF-CANVAS MENU FUNCTIONALITY

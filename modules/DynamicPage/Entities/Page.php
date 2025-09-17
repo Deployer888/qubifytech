@@ -32,6 +32,14 @@ class Page extends Model
         return $this->hasMany(DynamicContent::class);
     }
 
+        /**
+     * Get the custom SEO data for the page.
+     */
+    public function customSeos(): HasMany
+    {
+        return $this->hasMany(CustomSeo::class);
+    }
+
     /**
      * Get active dynamic contents ordered by order_by field.
      */
